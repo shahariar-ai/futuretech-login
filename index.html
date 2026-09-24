@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="FutureTech.ai Interactive Login — a frontend-only animated desk-lamp sign-in demo.">
+  <meta name="theme-color" content="#0A0F1C">
+  <title>FutureTech.ai — Interactive Login</title>
+
+  <!-- Favicon: a simple hexagon drawn inline, no image file needed -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l12 7v14l-12 7-12-7V9z' fill='none' stroke='%235CE1E6' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23FFB547'/%3E%3C/svg%3E">
+
+  <!-- Sora typeface (free, Google Fonts). The page falls back to system fonts if offline. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#username">Skip to sign in</a>
+
+  <!-- Decorative background layers -->
+  <div class="ambient" aria-hidden="true"></div>
+  <div class="particles" id="particles" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="FutureTech.ai, reload the login page">
+      <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <path d="M16 2.5l11.7 6.75v13.5L16 29.5 4.3 22.75V9.25z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M16 9v5m0 4v5M10 12.5l4.3 2.5m3.4 2l4.3 2.5M22 12.5l-4.3 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <circle cx="16" cy="16" r="2.4" fill="#FFB547"/>
+      </svg>
+      <span>FutureTech.ai</span>
+    </a>
+    <span class="demo-badge">Frontend demo</span>
+  </header>
+
+  <main class="stage">
+    <!-- ============ DESK LAMP (pure SVG) ============ -->
+    <section class="lamp-zone" aria-label="Desk lamp">
+      <svg class="lamp" id="lamp" viewBox="0 90 260 250" focusable="false">
+        <defs>
+          <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#48557A"/>
+            <stop offset="1" stop-color="#1C2436"/>
+          </linearGradient>
+          <linearGradient id="shadeFill" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#2A3450"/>
+            <stop offset=".55" stop-color="#4C5A80"/>
+            <stop offset="1" stop-color="#232C43"/>
+          </linearGradient>
+          <linearGradient id="beamFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#FFE2A8" stop-opacity=".62"/>
+            <stop offset=".4" stop-color="#FFB547" stop-opacity=".22"/>
+            <stop offset=".9" stop-color="#FFB547" stop-opacity="0"/>
+          </linearGradient>
+          <radialGradient id="bulbHalo">
+            <stop offset="0" stop-color="#FFF4D6" stop-opacity=".95"/>
+            <stop offset=".35" stop-color="#FFC56A" stop-opacity=".45"/>
+            <stop offset="1" stop-color="#FFB547" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="soften" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="6"/>
+          </filter>
+        </defs>
+
+        <!-- Warm pool of light on the desk -->
+        <ellipse class="lamp__pool" cx="170" cy="322" rx="120" ry="14" fill="#FFB547" filter="url(#soften)"/>
+
+        <!-- Base -->
+        <ellipse cx="80" cy="322" rx="64" ry="9" fill="#060A13" opacity=".7"/>
+        <path d="M24 318c0-14 18-22 56-22s56 8 56 22z" fill="url(#metal)"/>
+        <ellipse cx="80" cy="298" rx="38" ry="5" fill="#6B7AA3" opacity=".35"/>
+
+        <!-- Stand -->
+        <rect x="75" y="120" width="10" height="182" rx="5" fill="url(#metal)"/>
+        <rect x="77" y="126" width="2" height="168" rx="1" fill="#8C9BC4" opacity=".35"/>
+
+        <!-- Head: pivots at the top of the stand (the joint) -->
+        <g transform="translate(80 122)">
+          <g class="lamp__head" id="lamp-head">
+            <rect x="0" y="-5" width="88" height="10" rx="5" fill="url(#metal)"/>
+
+            <!-- Shade assembly, fixed angle at the end of the arm -->
+            <g transform="translate(88 0) rotate(-48)">
+              <polygon class="lamp__beam" points="-40,62 40,62 170,360 -170,360" fill="url(#beamFill)" filter="url(#soften)"/>
+              <circle class="lamp__halo" cx="0" cy="62" r="58" fill="url(#bulbHalo)"/>
+              <circle class="lamp__bulb" cx="0" cy="58" r="13"/>
+              <rect x="-10" y="-9" width="20" height="12" rx="4" fill="#2A3349"/>
+              <path class="lamp__shade" d="M-15 0h30l32 58q-47 13-94 0z" fill="url(#shadeFill)"/>
+              <path d="M-47 58q47 13 94 0" fill="none" stroke="#7F8FBA" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+
+              <!-- Pull cord: counter-rotated so it hangs straight down -->
+              <g transform="translate(30 61) rotate(48)">
+                <g class="lamp__cord-hang">
+                  <g class="lamp__cord" id="lamp-cord" role="button" tabindex="0" aria-pressed="false" aria-label="Pull the lamp cord to switch the light on">
+                    <rect class="cord-hit" x="-14" y="-2" width="28" height="70" fill="transparent"/>
+                    <g class="cord-pull">
+                      <line x1="0" y1="0" x2="0" y2="50" stroke="#8C98B3" stroke-width="1.6"/>
+                      <circle class="cord-bead" cx="0" cy="55" r="5.5"/>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+
+            <!-- Joint cap drawn last so it sits on top of the arm -->
+            <circle cx="0" cy="0" r="11" fill="#252E45" stroke="#56648C" stroke-width="2"/>
+            <circle cx="0" cy="0" r="3" fill="#7F8FBA"/>
+          </g>
+        </g>
+      </svg>
+    </section>
+
+    <!-- ============ LOGIN CARD ============ -->
+    <section class="card" id="card" aria-labelledby="card-title">
+      <div class="card__shade" aria-hidden="true"></div>
+      <div class="card__light" aria-hidden="true"></div>
+
+      <div class="card__body">
+        <div class="card__head">
+          <span class="lock" id="lock" role="img" aria-label="Locked">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path class="lock__shackle" d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <rect x="5" y="11" width="14" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="12" cy="16" r="1.4" fill="currentColor"/>
+            </svg>
+          </span>
+          <div>
+            <h1 id="card-title">Sign in</h1>
+            <p class="card__sub" id="card-sub">Switch on the light to enter the lab.</p>
+          </div>
+        </div>
+
+        <form class="login-form" id="login-form" novalidate>
+          <div class="field" id="field-username">
+            <label for="username">Username</label>
+            <div class="field__control">
+              <svg class="field__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="8.5" r="3.8" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M4.5 20c1.2-3.6 4-5.4 7.5-5.4s6.3 1.8 7.5 5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              <input id="username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required aria-describedby="username-error">
+            </div>
+            <p class="field__error" id="username-error"></p>
+          </div>
+
+          <div class="field" id="field-password">
+            <label for="password">Password</label>
+            <div class="field__control">
+              <svg class="field__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="8" cy="15" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M10.6 12.4L19 4m-3 3l2.5 2.5M13.5 9.5l2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              <input id="password" name="password" type="password" autocomplete="current-password" required aria-describedby="password-error">
+              <button type="button" class="toggle-pass" id="toggle-pass" aria-controls="password" aria-pressed="false" aria-label="Show password">
+                <svg class="icon-eye" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                  <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                </svg>
+                <svg class="icon-eye-off" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M4 4l16 16M9.9 5.8A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3 3.7M6.3 7.6A16.8 16.8 0 0 0 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4-.9M9.9 10a3 3 0 0 0 4.1 4.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <p class="field__error" id="password-error"></p>
+          </div>
+
+          <div class="form-row">
+            <label class="check" for="remember">
+              <input type="checkbox" id="remember" name="remember">
+              <span class="check__box" aria-hidden="true">
+                <svg viewBox="0 0 16 16" focusable="false"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              Remember me
+            </label>
+            <button type="button" class="link-btn" data-info="forgot">Forgot password?</button>
+          </div>
+
+          <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+
+          <button type="submit" class="btn-primary" id="submit-btn">
+            <span class="btn__spinner" aria-hidden="true"></span>
+            <span class="btn__label">Sign in</span>
+          </button>
+
+          <p class="alt">New to FutureTech.ai? <button type="button" class="link-btn" data-info="create">Create account</button></p>
+        </form>
+
+        <!-- Shown after a successful (demo) sign-in -->
+        <div class="success" id="success" hidden>
+          <div class="success__icon" aria-hidden="true">
+            <span class="success__burst"></span>
+            <svg viewBox="0 0 64 64" focusable="false">
+              <circle class="success__ring" cx="32" cy="32" r="26"/>
+              <path class="success__tick" d="M20 33l8 8 16-17"/>
+            </svg>
+          </div>
+          <h2 id="success-title" tabindex="-1">Welcome, <span id="success-name"></span></h2>
+          <p>The lamp is on and you're signed in to this demo. No account was checked and nothing left your browser.</p>
+          <button type="button" class="btn-ghost" id="signout-btn">Sign out</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 FutureTech.ai — Interactive UI Lab</p>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
