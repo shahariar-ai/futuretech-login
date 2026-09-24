@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="FutureTech.ai Interactive Login — a frontend-only animated desk-lamp sign-in demo.">
+  <meta name="description" content="FutureTech.ai Interactive Login — an animated desk-lamp sign-in page.">
   <meta name="theme-color" content="#0A0F1C">
   <title>FutureTech.ai — Interactive Login</title>
 
@@ -15,7 +15,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/lamp.css">
+  <link rel="stylesheet" href="css/card.css">
 </head>
 <body>
   <a class="skip-link" href="#username">Skip to sign in</a>
@@ -33,7 +36,7 @@
       </svg>
       <span>FutureTech.ai</span>
     </a>
-    <span class="demo-badge">Frontend demo</span>
+    <span class="demo-badge" id="demo-badge" hidden>Demo mode<span class="demo-badge__more"> — no real authentication</span></span>
   </header>
 
   <main class="stage">
@@ -209,6 +212,6 @@
     <p>© 2026 FutureTech.ai — Interactive UI Lab</p>
   </footer>
 
-  <script src="script.js" defer></script>
+  <script type="module" src="js/pages/login.js"></script>
 </body>
 </html>

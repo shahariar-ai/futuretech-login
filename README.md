@@ -31,34 +31,47 @@ Built from scratch with plain HTML, CSS and JavaScript as a FutureTech.ai portfo
 
 ## How to run locally
 
-**Option A — open directly**
+The JavaScript uses ES modules, which browsers block on `file://`. **Double-clicking `index.html` no longer works** — run a local server instead.
 
-Double-click `index.html`. It opens in your browser and works as is.
-
-**Option B — VS Code Live Server (recommended)**
+**Option A — VS Code Live Server (recommended)**
 
 1. Open the `futuretech-login` folder in VS Code (File → Open Folder).
 2. Install the **Live Server** extension by Ritwick Dey (Extensions panel, `Ctrl+Shift+X`).
 3. Right-click `index.html` → **Open with Live Server**.
 4. The page opens at `http://127.0.0.1:5500/index.html` and reloads when you save a file.
 
-**Option C — Python**
+**Option B — Python**
 
 ```bash
 cd futuretech-login
-python -m http.server 8000
+python -m http.server 5500
 ```
 
-Then visit `http://localhost:8000`.
+Then visit `http://127.0.0.1:5500`.
 
 ## Project structure
 
 ```
 futuretech-login/
-├── index.html   Page markup, SVG lamp, form and success panel
-├── style.css    Theme, layout, lamp states and all animations
-├── script.js    Validation, lamp control, success/error flow
-└── README.md    This file
+├── index.html                Page markup, SVG lamp, form and success panel
+├── css/
+│   ├── tokens.css            Colours, radii, easing
+│   ├── base.css              Reset, background, particles, top bar, layout, footer
+│   ├── lamp.css              Lamp, light and pull cord
+│   └── card.css              Glass card, form, buttons, messages, success panel
+├── js/
+│   ├── config.js             AUTH_PROVIDER + public config only
+│   ├── validation.js         Form checks (UX only, not security)
+│   ├── auth/
+│   │   ├── auth-service.js   The only auth API the UI uses
+│   │   ├── errors.js         Error codes + user-facing messages
+│   │   ├── demo-provider.js  Demo: no real authentication
+│   │   ├── supabase-provider.js  Placeholder until Supabase is connected
+│   │   └── firebase-provider.js  Documented stub
+│   ├── ui/                   lamp.js, feedback.js, panels.js
+│   └── pages/login.js        Sign-in page controller
+├── supabase/schema.sql       Database tables, trigger and RLS policies
+└── README.md
 ```
 
 ## How the animation works
@@ -83,16 +96,15 @@ CSS does the rest with transitions:
 
 With `prefers-reduced-motion: reduce` enabled, animations are cut to near-instant and the particles are removed.
 
-### Main JavaScript functions
+### Main JavaScript modules
 
-| Function | Purpose |
+| Module | Purpose |
 |---|---|
-| `initializeApp()` | Caches elements, binds events, restores "Remember me", creates particles |
-| `validateForm()` | Checks both fields, marks errors, returns the first invalid field |
-| `togglePassword()` | Shows or hides the password and updates the button's label |
-| `turnLampOn()` / `turnLampOff()` | Switches the light and updates the cord's accessible label |
-| `showSuccess(name)` | Unlocks, swaps the form for the welcome panel, moves focus to it |
-| `showError(message)` | Shows the message and shakes the card |
+| `js/auth/auth-service.js` | The only auth API the UI calls: `signIn`, `signUp`, `signOut`, `getSession`, `onAuthChange`… |
+| `js/pages/login.js` | Validates the form, calls `auth-service`, drives the lamp and panels from the result |
+| `js/ui/lamp.js` | `turnLampOn()` / `turnLampOff()`, peeking, pull cord, particles |
+| `js/ui/feedback.js` | Messages, field errors, shake, loading button |
+| `js/ui/panels.js` | Fades between the form and the success panel |
 
 ## Security limitation
 

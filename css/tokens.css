@@ -1,0 +1,29 @@
+/* =========================================================
+   FutureTech.ai — design tokens
+   Colours, type, radii and easing shared by every page.
+   ========================================================= */
+
+:root {
+  /* Palette: a cool midnight room, warmed by one lamp */
+  --night: #0A0F1C;
+  --night-2: #131C31;
+  --glass: rgba(20, 28, 46, 0.58);
+  --line: rgba(201, 211, 230, 0.14);
+  --text: #E8EDF6;
+  --muted: #A3AEC6;
+  --amber: #FFB547;
+  --amber-soft: #FFD58A;
+  --amber-link: #FFCB7A;
+  --cyan: #5CE1E6;
+  --danger: #FFA8A8;
+
+  --radius-card: 24px;
+  --radius-field: 12px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.45, 0.5, 1);
+
+  --tilt: -6deg; /* lamp head angle, changed by page state */
+
+  font-family: "Sora", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+}
