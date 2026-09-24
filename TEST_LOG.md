@@ -70,3 +70,23 @@ path (no spring, flicker, sway, shake or particles — fades only).
 - 👤 Needs a human eye: how the spring, warm-up and flicker *feel*; Safari/Firefox
   rendering of the specular rim (`mask-composite`) and spring curve (`linear()`) —
   both have fallbacks; a real phone with a notch and the on-screen keyboard open.
+
+## Before Pause A — `supabase/schema.sql`
+
+Tested for real on a throwaway local PostgreSQL 18 database (with a small mock of
+Supabase's `auth` schema and the `anon` / `authenticated` roles). The database was
+deleted afterwards; nothing touched Supabase.
+
+- ✅ Script runs without errors, and running it a second time is also fine (idempotent).
+- ✅ Sign-up trigger creates a profile: name trimmed, OAuth `name`/`avatar_url` picked up, empty metadata → empty name.
+- ✅ RLS is enabled on `profiles`.
+- ✅ User A sees only their own row and cannot read User B's row.
+- ✅ User A can update their own name; updating B's row changes 0 rows; B is unchanged.
+- ✅ User A cannot change `id` or `created_at`, cannot insert, cannot delete (permission denied).
+- ✅ Names over 100 characters are rejected; `updated_at` updates automatically.
+- ✅ Anonymous visitors cannot read profiles at all.
+- ✅ The trigger function cannot be called through the API.
+- ✅ Deleting an auth user deletes their profile (cascade).
+- 👤 Must be re-checked on the real Supabase project in Phase 10 (User A vs User B through the API).
+
+**Status: stopped at Pause A.** Next step for the human: follow `PAUSE_A_CHECKLIST.md`.
