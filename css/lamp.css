@@ -1,6 +1,9 @@
 /* =========================================================
    FutureTech.ai — desk lamp
    The SVG lamp, its light and the pull cord.
+     body.is-peeking     lamp leans toward the form, faint glow
+     body.is-lit         bulb warms up, beam and pool fade in
+     body.is-flickering  failed sign-in: short flicker, then out
    ========================================================= */
 
 .lamp-zone {
@@ -16,50 +19,135 @@
   width: 100%;
   height: auto;
   overflow: visible;
-  transition: transform 0.9s var(--ease-spring);
+  transition: transform 0.9s var(--ease-lamp);
 }
 .is-peeking .lamp { transform: translate(6px, 4px); }
 
-/* The head rotates around the joint at the top of the stand */
+/* The head rotates around the joint at the top of the stand,
+   on a spring curve: small overshoot, then it settles. */
 .lamp__head {
   transform: rotate(var(--tilt));
   transform-origin: 0 0;
-  transition: transform 0.9s var(--ease-spring);
+  transition: transform 0.9s var(--ease-lamp);
 }
 body.is-lit      { --tilt: 0deg; }
 body.is-peeking  { --tilt: 8deg; }
 
-.lamp__bulb { fill: #353E55; transition: fill 0.5s; }
+/* ---------- Bulb, halo, beam, pool ---------- */
+.lamp__bulb { fill: #353E55; transition: fill 0.5s var(--ease-out); }
 .is-peeking .lamp__bulb { fill: #6E6450; }
-.is-lit .lamp__bulb     { fill: #FFF1CC; }
+.is-lit .lamp__bulb     { fill: #FFF3D6; }
 
 .lamp__beam,
 .lamp__halo,
-.lamp__pool { opacity: 0; transition: opacity 0.9s var(--ease-out); }
+.lamp__pool { opacity: 0; transition: opacity 0.7s var(--ease-out); }
+.lamp__halo { transform-box: fill-box; transform-origin: center; }
 
-.is-peeking .lamp__beam { opacity: 0.18; }
+.is-peeking .lamp__beam { opacity: 0.16; }
 .is-peeking .lamp__halo { opacity: 0.3; }
 .is-peeking .lamp__pool { opacity: 0.05; }
 
 .is-lit .lamp__beam { opacity: 1; }
 .is-lit .lamp__halo { opacity: 1; }
-.is-lit .lamp__pool { opacity: 0.22; }
+.is-lit .lamp__pool { opacity: 0.3; }
 
-/* Brief filament flicker when the lamp switches on */
-.is-lit .lamp__beam,
-.is-lit .lamp__halo { animation: flicker 0.7s ease-out 1; }
-@keyframes flicker {
+/* Warm-up: the filament glows dim amber, then climbs to warm white */
+.is-lit .lamp__bulb { animation: bulb-warm 0.45s var(--ease-out); }
+.is-lit .lamp__halo { animation: halo-warm 0.45s var(--ease-out); }
+.is-lit .lamp__beam { animation: beam-warm 0.55s ease-in; }
+
+@keyframes bulb-warm {
+  0%   { fill: #6B3F12; }
+  35%  { fill: #D98A2B; }
+  70%  { fill: #FFD58A; }
+  100% { fill: #FFF3D6; }
+}
+@keyframes halo-warm {
+  0%   { opacity: 0.1; transform: scale(0.55); }
+  45%  { opacity: 0.55; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes beam-warm {
   0%   { opacity: 0; }
-  18%  { opacity: 0.8; }
-  26%  { opacity: 0.25; }
-  40%  { opacity: 1; }
+  40%  { opacity: 0.35; }
   100% { opacity: 1; }
 }
 
-/* Pull cord */
+/* Failed sign-in: the bulb stutters, then dies (under 600ms) */
+.is-flickering .lamp__bulb { animation: bulb-fail 0.55s linear; }
+.is-flickering .lamp__halo { animation: glow-fail 0.55s linear; }
+.is-flickering .lamp__beam { animation: beam-fail 0.55s linear; }
+
+@keyframes bulb-fail {
+  0%   { fill: #FFD58A; }
+  14%  { fill: #4A4136; }
+  26%  { fill: #F5B860; }
+  40%  { fill: #3B3A40; }
+  54%  { fill: #A8804A; }
+  100% { fill: #353E55; }
+}
+@keyframes glow-fail {
+  0%   { opacity: 0.75; }
+  14%  { opacity: 0.08; }
+  26%  { opacity: 0.55; }
+  40%  { opacity: 0; }
+  54%  { opacity: 0.22; }
+  100% { opacity: 0; }
+}
+@keyframes beam-fail {
+  0%   { opacity: 0.5; }
+  14%  { opacity: 0.05; }
+  26%  { opacity: 0.35; }
+  40%  { opacity: 0; }
+  54%  { opacity: 0.12; }
+  100% { opacity: 0; }
+}
+
+/* ---------- Desk shadow and metal highlights ---------- */
+.lamp__shadow {
+  transform-box: fill-box;
+  transform-origin: 60% 50%;
+  transition: transform 0.7s var(--ease-out), opacity 0.7s var(--ease-out);
+}
+/* With the bulb on, the base shadow stretches away from the light */
+.is-lit .lamp__shadow { transform: scaleX(1.12) translateX(-3px); opacity: 0.95; }
+
+.lamp__sheen {
+  fill: #8C9BC4;
+  opacity: 0.35;
+  transition: fill 0.6s var(--ease-out), stroke 0.6s var(--ease-out), opacity 0.6s var(--ease-out);
+}
+.lamp__sheen--line { fill: none; stroke: #8C9BC4; opacity: 0.22; }
+.lamp__rim {
+  stroke: #7F8FBA;
+  opacity: 0.6;
+  transition: stroke 0.6s var(--ease-out), opacity 0.6s var(--ease-out);
+}
+.lamp__joint { stroke: #56648C; transition: stroke 0.6s var(--ease-out); }
+
+.is-peeking .lamp__rim { stroke: #B7A98E; }
+.is-lit .lamp__sheen { fill: #FFE1B0; opacity: 0.55; }
+.is-lit .lamp__sheen--line { stroke: #FFE1B0; opacity: 0.5; }
+.is-lit .lamp__rim { stroke: #FFE7B8; opacity: 1; }
+.is-lit .lamp__joint { stroke: #9C8A6E; }
+
+/* ---------- Pull cord ---------- */
 .lamp__cord { cursor: pointer; outline: none; }
 .cord-pull { transition: transform 0.35s var(--ease-spring); }
 .lamp__cord.is-pulled .cord-pull { transform: translateY(10px); }
+
+/* The cord swings like a pendulum after a pull or a head move */
+.lamp__cord-hang { transform-origin: 0 0; }
+.lamp__cord-hang.is-swaying { animation: sway 0.9s var(--ease-out); }
+@keyframes sway {
+  0%   { transform: rotate(0deg); }
+  18%  { transform: rotate(7deg); }
+  40%  { transform: rotate(-4.5deg); }
+  60%  { transform: rotate(2.5deg); }
+  80%  { transform: rotate(-1deg); }
+  100% { transform: rotate(0deg); }
+}
+
 .cord-bead {
   fill: #C9A56A;
   stroke: transparent;
@@ -78,4 +166,16 @@ body.is-peeking  { --tilt: 8deg; }
     margin: 0 -24px 60px 0;
   }
   .is-peeking .lamp { transform: translate(12px, 2px); }
+}
+
+/* Reduced motion: no spring, no flicker, no sway — simple fades only */
+@media (prefers-reduced-motion: reduce) {
+  .lamp,
+  .lamp__head,
+  .lamp__shadow,
+  .cord-pull { transition: none; }
+  .is-lit .lamp__shadow { transform: none; }
+  .lamp__beam,
+  .lamp__halo,
+  .lamp__pool { transition: opacity 0.3s linear; }
 }

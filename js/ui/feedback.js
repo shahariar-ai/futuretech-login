@@ -45,6 +45,20 @@ export function clearFieldError(input) {
   return true;
 }
 
+let announceTimer = 0;
+
+/**
+ * Screen-reader announcement through the page's #sr-status live region.
+ * The text is set after a short delay so repeated messages are read again.
+ */
+export function announce(text) {
+  const region = document.getElementById('sr-status');
+  if (!region) return;
+  window.clearTimeout(announceTimer);
+  region.textContent = '';
+  announceTimer = window.setTimeout(() => { region.textContent = text; }, 60);
+}
+
 /** Toggle a submit button's busy state; the label swaps without layout shift. */
 export function setLoading(button, isLoading, { idle, busy }) {
   button.setAttribute('aria-busy', String(isLoading));

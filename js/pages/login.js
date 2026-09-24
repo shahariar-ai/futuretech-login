@@ -6,8 +6,8 @@
 
 import * as auth from '../auth/auth-service.js';
 import { validateSignIn } from '../validation.js';
-import { initLamp, setPeeking, turnLampOn, turnLampOff, createParticles } from '../ui/lamp.js';
-import { setMessage, shake, initShake, setFieldError, clearFieldError, setLoading } from '../ui/feedback.js';
+import { initLamp, setPeeking, turnLampOn, turnLampOff, flickerOut, createParticles } from '../ui/lamp.js';
+import { setMessage, shake, initShake, setFieldError, clearFieldError, setLoading, announce } from '../ui/feedback.js';
 import { swapPanel, showPanelNow } from '../ui/panels.js';
 
 const REMEMBER_KEY = 'futuretech-demo-username'; // stores the username only, never the password
@@ -43,7 +43,10 @@ function init() {
 
   dom.demoBadge.hidden = !auth.isDemo;
 
-  initLamp({ cord: document.getElementById('lamp-cord') });
+  initLamp({
+    cord: document.getElementById('lamp-cord'),
+    onChange: (isOn) => announce(isOn ? 'Light on' : 'Light off'),
+  });
   initShake(dom.card);
   bindEvents();
   restoreRememberedUser();
@@ -99,6 +102,7 @@ async function handleSubmit(event) {
   setBusy(false);
 
   if (!response.ok) {
+    flickerOut();
     showError(response.error.message);
     return;
   }
@@ -129,6 +133,7 @@ function showSuccess(name) {
   dom.lock.setAttribute('aria-label', 'Unlocked');
   dom.successName.textContent = name;
   setHeading('Signed in', 'The light is on.');
+  announce(`Signed in as ${name}. Light on.`);
   swapPanel(dom.form, dom.success, { focusEl: dom.successTitle });
 }
 
@@ -152,6 +157,7 @@ async function handleSignOut() {
   if (dom.password.type === 'text') togglePassword();
   if (!dom.remember.checked) dom.username.value = '';
   setMessage(dom.message, 'Signed out.', 'is-info');
+  announce('Signed out. Light off.');
 
   (dom.username.value ? dom.password : dom.username).focus();
 }

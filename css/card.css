@@ -5,6 +5,10 @@
 
 /* ---------- Glass login card ---------- */
 .card {
+  /* Where the lamp light hits the card. Mobile: lamp is above-left. */
+  --light-at: 22% -14%;
+  --light-size: 130% 78%;
+
   position: relative;
   z-index: 1;
   width: 100%;
@@ -14,34 +18,89 @@
   border: 1px solid var(--line);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
   backdrop-filter: blur(18px) saturate(140%);
-  box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.7);
+  /* Layered edge: thin inner top highlight + soft outer and contact shadows */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 34px 70px -30px rgba(0, 0, 0, 0.78),
+    0 10px 22px -14px rgba(0, 0, 0, 0.55);
   overflow: hidden;
   transition: transform 0.4s var(--ease-out), border-color 0.8s, box-shadow 0.8s;
 }
 
+/* Lower blur on small screens: cheaper to render on mid-range phones */
+@media (max-width: 599px) {
+  .card {
+    -webkit-backdrop-filter: blur(10px) saturate(130%);
+    backdrop-filter: blur(10px) saturate(130%);
+  }
+}
+/* No backdrop-filter support: a solid-enough panel keeps text readable */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .card { background: rgba(16, 22, 38, 0.95); }
+}
+
 /* Darkening layer (room is dim) and warm light layer (lamp is on) */
 .card__shade,
-.card__light {
+.card__light,
+.card__noise {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  transition: opacity 1s var(--ease-out);
+  transition: opacity 0.9s var(--ease-out);
 }
 .card__shade { background: rgba(4, 7, 14, 0.36); }
 .card__light {
   background:
-    radial-gradient(120% 80% at 10% -10%, rgba(255, 190, 90, 0.26), transparent 60%),
-    linear-gradient(180deg, rgba(255, 200, 120, 0.06), transparent 40%);
+    radial-gradient(var(--light-size) at var(--light-at), rgba(255, 190, 90, 0.28), transparent 62%),
+    linear-gradient(180deg, rgba(255, 200, 120, 0.05), transparent 40%);
   opacity: 0;
+}
+/* Very light grain: prevents banding in the glass gradients */
+.card__noise {
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 .is-peeking .card__shade { opacity: 0.75; }
 .is-peeking .card__light { opacity: 0.3; }
 .is-lit .card__shade { opacity: 0; }
 .is-lit .card__light { opacity: 1; }
 
+/* Specular edge: a bright rim on the side facing the lamp.
+   ::before is the cool resting rim, ::after the warm lit rim. */
+@supports (mask-composite: exclude) or (-webkit-mask-composite: xor) {
+  .card::before,
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    transition: opacity 0.9s var(--ease-out);
+  }
+  .card::before {
+    background: radial-gradient(var(--light-size) at var(--light-at), rgba(220, 230, 255, 0.28), transparent 60%);
+  }
+  .card::after {
+    background: radial-gradient(var(--light-size) at var(--light-at), rgba(255, 226, 170, 0.9), rgba(255, 190, 100, 0.25) 45%, transparent 70%);
+    opacity: 0;
+  }
+  .is-peeking .card::after { opacity: 0.3; }
+  .is-lit .card::after { opacity: 1; }
+}
+
+/* Lamp on: warm border and a shadow tinted by the light */
 .is-lit .card {
   border-color: rgba(255, 200, 120, 0.3);
-  box-shadow: 0 30px 70px -24px rgba(0, 0, 0, 0.7), 0 0 70px -24px rgba(255, 181, 71, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 200, 0.14),
+    0 34px 74px -30px rgba(40, 20, 0, 0.8),
+    0 10px 22px -14px rgba(20, 10, 0, 0.6),
+    0 0 70px -24px rgba(255, 181, 71, 0.45);
 }
 
 @media (hover: hover) {
@@ -125,9 +184,10 @@
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--muted);
-  transition: color 0.25s;
+  transition: color 0.25s var(--ease-out), transform 0.3s var(--ease-out);
+  transform-origin: left center;
 }
-.field:focus-within label { color: var(--amber-soft); }
+.field:focus-within label { color: var(--amber-soft); transform: translateX(2px); }
 
 .field__control {
   position: relative;
@@ -136,12 +196,14 @@
   border-radius: var(--radius-field);
   background: rgba(6, 10, 20, 0.55);
   border: 1px solid var(--line);
-  transition: border-color 0.25s, box-shadow 0.25s, background-color 0.25s;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), background-color 0.25s var(--ease-out);
 }
+.field__control:hover { border-color: rgba(201, 211, 230, 0.24); }
 .field__control:focus-within {
   border-color: rgba(255, 181, 71, 0.65);
   background: rgba(6, 10, 20, 0.72);
-  box-shadow: 0 0 0 4px rgba(255, 181, 71, 0.14);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 0 4px rgba(255, 181, 71, 0.14);
 }
 
 .field__icon {
@@ -150,7 +212,7 @@
   height: 18px;
   margin-left: 14px;
   color: var(--muted);
-  transition: color 0.25s, transform 0.3s var(--ease-spring);
+  transition: color 0.25s var(--ease-out), transform 0.3s var(--ease-spring);
 }
 .field__control:focus-within .field__icon {
   color: var(--amber);
@@ -160,18 +222,21 @@
 .field input {
   flex: 1;
   min-width: 0;
+  min-height: 50px;
   padding: 14px 14px 14px 12px;
   border: 0;
   outline: 0;
   background: transparent;
   color: var(--text);
+  caret-color: var(--caret);
   font: inherit;
   font-size: 1rem; /* 16px prevents iOS zoom on focus */
 }
+.field input::placeholder { color: #8894AE; opacity: 1; }
 .field input:-webkit-autofill {
   -webkit-text-fill-color: var(--text);
   -webkit-box-shadow: 0 0 0 1000px #0B111F inset;
-  caret-color: var(--text);
+  caret-color: var(--caret);
 }
 
 .toggle-pass {
@@ -190,10 +255,21 @@
   transition: color 0.2s, background-color 0.2s;
 }
 .toggle-pass:hover { color: var(--text); background: rgba(255, 255, 255, 0.05); }
-.toggle-pass svg { width: 20px; height: 20px; }
-.toggle-pass .icon-eye-off { display: none; }
-.toggle-pass[aria-pressed="true"] .icon-eye { display: none; }
-.toggle-pass[aria-pressed="true"] .icon-eye-off { display: block; }
+.toggle-pass svg { width: 20px; height: 20px; overflow: visible; }
+
+/* Eye icon morphs: the slash draws across and the pupil narrows */
+.eye__slash {
+  stroke-dasharray: 23;
+  stroke-dashoffset: 23;
+  transition: stroke-dashoffset 0.3s var(--ease-out);
+}
+.eye__pupil {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.3s var(--ease-spring), opacity 0.3s;
+}
+.toggle-pass[aria-pressed="true"] .eye__slash { stroke-dashoffset: 0; }
+.toggle-pass[aria-pressed="true"] .eye__pupil { transform: scale(0.55); opacity: 0.7; }
 
 /* Validation */
 .field.has-error .field__control {
@@ -205,6 +281,7 @@
   margin: 6px 0 0;
   font-size: 0.8125rem;
   color: var(--danger);
+  animation: rise 0.3s var(--ease-out);
 }
 .field__error:empty { display: none; }
 
@@ -214,8 +291,8 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 12px;
-  margin: 4px 0 20px;
+  gap: 4px 12px;
+  margin: 0 0 16px;
 }
 
 .check {
@@ -246,14 +323,24 @@
   color: #1B1204;
   transition: background-color 0.2s, border-color 0.2s, transform 0.2s var(--ease-spring);
 }
-.check__box svg { width: 14px; height: 14px; opacity: 0; transform: scale(0.6); transition: opacity 0.2s, transform 0.25s var(--ease-spring); }
+.check__box svg { width: 14px; height: 14px; }
+/* The tick draws itself in */
+.check__box path {
+  stroke-dasharray: 14;
+  stroke-dashoffset: 14;
+  transition: stroke-dashoffset 0.28s var(--ease-out) 0.05s;
+}
+.check:hover .check__box { border-color: rgba(255, 200, 120, 0.6); }
 .check input:checked + .check__box { background: var(--amber); border-color: var(--amber); }
-.check input:checked + .check__box svg { opacity: 1; transform: scale(1); }
+.check input:checked + .check__box path { stroke-dashoffset: 0; }
 .check:active .check__box { transform: scale(0.9); }
 .check input:focus-visible + .check__box { outline: 2px solid var(--cyan); outline-offset: 3px; }
 
 .link-btn {
-  padding: 6px 2px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
   border: 0;
   background: none;
   color: var(--amber-link);
@@ -263,24 +350,26 @@
   cursor: pointer;
   border-radius: 6px;
   text-underline-offset: 4px;
+  vertical-align: middle;
 }
 .link-btn:hover { text-decoration: underline; }
 
-/* Status / error message */
+/* Status / error message: slides in gently; role="status" announces it */
 .form-message {
   margin: 0 0 16px;
   padding: 10px 12px;
   border-radius: 10px;
   font-size: 0.8125rem;
   line-height: 1.45;
-  animation: rise 0.3s var(--ease-out);
+  animation: rise 0.35s var(--ease-out);
 }
 .form-message:empty { display: none; }
 .form-message.is-error { color: #FFC2C2; background: rgba(255, 120, 120, 0.08); border: 1px solid rgba(255, 138, 138, 0.28); }
 .form-message.is-info  { color: #C8F4F6; background: rgba(92, 225, 230, 0.06); border: 1px solid rgba(92, 225, 230, 0.22); }
+.form-message.is-success { color: #FFE2B0; background: rgba(255, 181, 71, 0.08); border: 1px solid rgba(255, 181, 71, 0.28); }
 
 @keyframes rise {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: none; }
 }
 
@@ -290,9 +379,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
   width: 100%;
   min-height: 52px;
+  padding: 0 52px; /* room for the spinner, so the label never moves */
   border: 0;
   border-radius: var(--radius-field);
   background: linear-gradient(180deg, #FFC766, #F5A33B);
@@ -309,19 +398,33 @@
   filter: brightness(1.05);
   box-shadow: 0 16px 34px -12px rgba(255, 166, 61, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
-.btn-primary:active { transform: translateY(0) scale(0.985); filter: brightness(0.97); }
+.btn-primary:active {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(0.96);
+  box-shadow: 0 6px 14px -10px rgba(255, 166, 61, 0.8), inset 0 1px 2px rgba(80, 40, 0, 0.25);
+  transition-duration: 0.08s;
+}
 .btn-primary[aria-busy="true"] { cursor: progress; }
 
 .btn__spinner {
-  display: none;
+  position: absolute;
+  right: 18px;
+  top: 50%;
   width: 18px;
   height: 18px;
+  margin-top: -9px;
   border-radius: 50%;
   border: 2px solid rgba(27, 18, 4, 0.25);
   border-top-color: #1B1204;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.2s, transform 0.25s var(--ease-spring);
+}
+.btn-primary[aria-busy="true"] .btn__spinner {
+  opacity: 1;
+  transform: scale(1);
   animation: spin 0.7s linear infinite;
 }
-.btn-primary[aria-busy="true"] .btn__spinner { display: block; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .btn-ghost {
@@ -335,13 +438,13 @@
   font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.2s var(--ease-out);
+  transition: background-color 0.2s, border-color 0.2s, transform 0.2s var(--ease-out);
 }
-.btn-ghost:hover { background: rgba(255, 181, 71, 0.12); }
-.btn-ghost:active { transform: scale(0.97); }
+.btn-ghost:hover { background: rgba(255, 181, 71, 0.12); border-color: rgba(255, 200, 120, 0.5); transform: translateY(-1px); }
+.btn-ghost:active { transform: scale(0.97); transition-duration: 0.08s; }
 
 .alt {
-  margin: 20px 0 0;
+  margin: 16px 0 0;
   text-align: center;
   font-size: 0.875rem;
   color: var(--muted);
@@ -413,11 +516,35 @@
   .card__body { padding: 32px 28px 28px; }
 }
 
+/* Tablet and up: the lamp stands to the left, so light arrives from the left edge */
 @media (min-width: 760px) {
+  .card {
+    --light-at: -14% 30%;
+    --light-size: 100% 120%;
+  }
   .card__body { padding: 40px 36px 34px; }
 }
 
+/* Reduced motion: no lift, shake, spring or slide — fades only */
 @media (prefers-reduced-motion: reduce) {
+  .card,
+  .btn-primary,
+  .btn-ghost,
+  .field label,
+  .field__icon,
+  .check__box,
+  .lock__shackle,
+  .eye__pupil,
+  .btn__spinner { transition-property: opacity, color, background-color, border-color, box-shadow, filter; }
+  .card:hover,
+  .btn-primary:hover,
+  .btn-primary:active,
+  .btn-ghost:hover,
+  .btn-ghost:active,
+  .field:focus-within label,
+  .field__control:focus-within .field__icon { transform: none; }
+  .login-form.is-leaving,
+  .success { transform: none; }
   .success__ring,
   .success__tick { stroke-dashoffset: 0; }
 }

@@ -41,3 +41,32 @@ What changed: `style.css` → `css/tokens|base|lamp|card.css`; `script.js` →
 - ✅ UI files import only `auth-service.js`, never a provider.
 - 👤 From now on the site must be opened with **VS Code Live Server** (ES modules do not
   work from `file://`).
+
+## Phase 2 — Premium UI polish
+
+What changed: spring lamp tilt (real damped-spring `linear()` curve with a
+cubic-bezier fallback), bulb warm-up (dim amber → warm white, ~450ms),
+flicker-out on failed sign-in (~550ms), pendulum cord sway, metal highlights
+that warm up with the light, soft falloff desk shadow, beam with eased falloff
+and faded sides, card light coming from the lamp's side (top-left on phones,
+left edge on tablet/desktop), layered glass edge + grain + specular rim,
+lower blur on phones + solid fallback without `backdrop-filter`, accent caret,
+drawn checkbox tick, morphing eye icon, spinner that never moves the label,
+44px touch targets, safe-area padding, `enterkeyhint`, an `aria-live` region
+for "Light on / Light off / Signed in / Signed out", and a real reduced-motion
+path (no spring, flicker, sway, shake or particles — fades only).
+
+- ✅ 73/73 automated checks passed (Chromium, all five widths).
+- ✅ No console errors, no horizontal scroll at 360 / 390 / 768 / 1024 / 1440, before and after sign-in.
+- ✅ Touch targets: every button/link ≥ 44px tall; lamp cord hit area now ≥ 36×44px on phones (was ~21px wide). 🔧 Brand link raised to 44px.
+- ✅ Screen reader live region announces "Signed in as …. Light on.", "Light off", "Signed out. Light off."
+- ✅ Failed sign-in (tested by switching to the unconfigured provider) flickers the bulb out and leaves the lamp off.
+- ✅ Loading state: spinner fades in on the right, label stays centred, button height stays 52px.
+- ✅ Checkbox tick draws in; eye icon slash draws in when the password is shown; caret is amber.
+- ✅ Reduced motion: no particles, no tilt spring, no cord sway; sign-in still completes.
+- ✅ Contrast (WCAG AA ≥ 4.5:1), worst cases: muted text on lit card 5.7:1, placeholder 6.3:1, button label 9.0:1; everything else higher.
+- ✅ Before/after screenshots compared at all five widths (idle, password focused, signed in).
+- 🔧 Test-only timing fixes (checkbox and spinner sampled too early). No app bug.
+- 👤 Needs a human eye: how the spring, warm-up and flicker *feel*; Safari/Firefox
+  rendering of the specular rim (`mask-composite`) and spring curve (`linear()`) —
+  both have fallbacks; a real phone with a notch and the on-screen keyboard open.

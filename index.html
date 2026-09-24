@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="FutureTech.ai Interactive Login — an animated desk-lamp sign-in page.">
   <meta name="theme-color" content="#0A0F1C">
   <title>FutureTech.ai — Interactive Login</title>
@@ -53,52 +53,83 @@
             <stop offset=".55" stop-color="#4C5A80"/>
             <stop offset="1" stop-color="#232C43"/>
           </linearGradient>
+          <!-- Beam: long, eased falloff so it never ends in a hard line -->
           <linearGradient id="beamFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#FFE2A8" stop-opacity=".62"/>
-            <stop offset=".4" stop-color="#FFB547" stop-opacity=".22"/>
-            <stop offset=".9" stop-color="#FFB547" stop-opacity="0"/>
+            <stop offset="0" stop-color="#FFF1D2" stop-opacity=".66"/>
+            <stop offset=".12" stop-color="#FFE0A3" stop-opacity=".42"/>
+            <stop offset=".3" stop-color="#FFC56A" stop-opacity=".22"/>
+            <stop offset=".52" stop-color="#FFB547" stop-opacity=".1"/>
+            <stop offset=".72" stop-color="#FFB547" stop-opacity=".035"/>
+            <stop offset=".88" stop-color="#FFB547" stop-opacity="0"/>
           </linearGradient>
+          <!-- Beam sides fade out too -->
+          <linearGradient id="beamSides" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+            <stop offset=".3" stop-color="#fff" stop-opacity=".85"/>
+            <stop offset=".5" stop-color="#fff" stop-opacity="1"/>
+            <stop offset=".7" stop-color="#fff" stop-opacity=".85"/>
+            <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+          <mask id="beamMask" maskUnits="userSpaceOnUse" x="-200" y="40" width="400" height="340">
+            <rect x="-200" y="40" width="400" height="340" fill="url(#beamSides)"/>
+          </mask>
+          <!-- Soft desk shadow under the base: dark centre, gentle falloff -->
+          <radialGradient id="deskShadow">
+            <stop offset="0" stop-color="#03060C" stop-opacity=".85"/>
+            <stop offset=".55" stop-color="#03060C" stop-opacity=".4"/>
+            <stop offset="1" stop-color="#03060C" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="poolFill">
+            <stop offset="0" stop-color="#FFC56A" stop-opacity=".9"/>
+            <stop offset=".6" stop-color="#FFB547" stop-opacity=".35"/>
+            <stop offset="1" stop-color="#FFB547" stop-opacity="0"/>
+          </radialGradient>
           <radialGradient id="bulbHalo">
             <stop offset="0" stop-color="#FFF4D6" stop-opacity=".95"/>
             <stop offset=".35" stop-color="#FFC56A" stop-opacity=".45"/>
             <stop offset="1" stop-color="#FFB547" stop-opacity="0"/>
           </radialGradient>
-          <filter id="soften" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="6"/>
+          <filter id="beamBlur" x="-30%" y="-10%" width="160%" height="130%">
+            <feGaussianBlur stdDeviation="9"/>
           </filter>
         </defs>
 
         <!-- Warm pool of light on the desk -->
-        <ellipse class="lamp__pool" cx="170" cy="322" rx="120" ry="14" fill="#FFB547" filter="url(#soften)"/>
+        <ellipse class="lamp__pool" cx="172" cy="322" rx="130" ry="16" fill="url(#poolFill)"/>
 
-        <!-- Base -->
-        <ellipse cx="80" cy="322" rx="64" ry="9" fill="#060A13" opacity=".7"/>
+        <!-- Base, with a soft falloff shadow on the desk -->
+        <ellipse class="lamp__shadow" cx="84" cy="321" rx="84" ry="11" fill="url(#deskShadow)"/>
         <path d="M24 318c0-14 18-22 56-22s56 8 56 22z" fill="url(#metal)"/>
-        <ellipse cx="80" cy="298" rx="38" ry="5" fill="#6B7AA3" opacity=".35"/>
+        <ellipse class="lamp__sheen" cx="80" cy="298" rx="38" ry="5"/>
+        <path class="lamp__sheen lamp__sheen--line" d="M42 305q38-9 76 0" fill="none" stroke-width="1.5" stroke-linecap="round"/>
 
         <!-- Stand -->
         <rect x="75" y="120" width="10" height="182" rx="5" fill="url(#metal)"/>
-        <rect x="77" y="126" width="2" height="168" rx="1" fill="#8C9BC4" opacity=".35"/>
+        <rect class="lamp__sheen" x="77" y="126" width="2" height="168" rx="1"/>
 
         <!-- Head: pivots at the top of the stand (the joint) -->
         <g transform="translate(80 122)">
           <g class="lamp__head" id="lamp-head">
             <rect x="0" y="-5" width="88" height="10" rx="5" fill="url(#metal)"/>
+            <rect class="lamp__sheen" x="10" y="-3.5" width="70" height="1.6" rx=".8"/>
 
             <!-- Shade assembly, fixed angle at the end of the arm -->
             <g transform="translate(88 0) rotate(-48)">
-              <polygon class="lamp__beam" points="-40,62 40,62 170,360 -170,360" fill="url(#beamFill)" filter="url(#soften)"/>
+              <g class="lamp__beam" mask="url(#beamMask)">
+                <polygon points="-38,60 38,60 175,370 -175,370" fill="url(#beamFill)" filter="url(#beamBlur)"/>
+              </g>
               <circle class="lamp__halo" cx="0" cy="62" r="58" fill="url(#bulbHalo)"/>
               <circle class="lamp__bulb" cx="0" cy="58" r="13"/>
               <rect x="-10" y="-9" width="20" height="12" rx="4" fill="#2A3349"/>
               <path class="lamp__shade" d="M-15 0h30l32 58q-47 13-94 0z" fill="url(#shadeFill)"/>
-              <path d="M-47 58q47 13 94 0" fill="none" stroke="#7F8FBA" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+              <path class="lamp__sheen lamp__sheen--line" d="M-9 5q-13 22-25 45" fill="none" stroke-width="2" stroke-linecap="round"/>
+              <path class="lamp__rim" d="M-47 58q47 13 94 0" fill="none" stroke-width="2" stroke-linecap="round"/>
 
               <!-- Pull cord: counter-rotated so it hangs straight down -->
               <g transform="translate(30 61) rotate(48)">
                 <g class="lamp__cord-hang">
                   <g class="lamp__cord" id="lamp-cord" role="button" tabindex="0" aria-pressed="false" aria-label="Pull the lamp cord to switch the light on">
-                    <rect class="cord-hit" x="-14" y="-2" width="28" height="70" fill="transparent"/>
+                    <rect class="cord-hit" x="-34" y="-2" width="68" height="76" fill="transparent"/>
                     <g class="cord-pull">
                       <line x1="0" y1="0" x2="0" y2="50" stroke="#8C98B3" stroke-width="1.6"/>
                       <circle class="cord-bead" cx="0" cy="55" r="5.5"/>
@@ -109,7 +140,7 @@
             </g>
 
             <!-- Joint cap drawn last so it sits on top of the arm -->
-            <circle cx="0" cy="0" r="11" fill="#252E45" stroke="#56648C" stroke-width="2"/>
+            <circle class="lamp__joint" cx="0" cy="0" r="11" fill="#252E45" stroke-width="2"/>
             <circle cx="0" cy="0" r="3" fill="#7F8FBA"/>
           </g>
         </g>
@@ -120,6 +151,7 @@
     <section class="card" id="card" aria-labelledby="card-title">
       <div class="card__shade" aria-hidden="true"></div>
       <div class="card__light" aria-hidden="true"></div>
+      <div class="card__noise" aria-hidden="true"></div>
 
       <div class="card__body">
         <div class="card__head">
@@ -144,7 +176,7 @@
                 <circle cx="12" cy="8.5" r="3.8" fill="none" stroke="currentColor" stroke-width="1.8"/>
                 <path d="M4.5 20c1.2-3.6 4-5.4 7.5-5.4s6.3 1.8 7.5 5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
               </svg>
-              <input id="username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required aria-describedby="username-error">
+              <input id="username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" enterkeyhint="next" required aria-describedby="username-error">
             </div>
             <p class="field__error" id="username-error"></p>
           </div>
@@ -156,14 +188,12 @@
                 <circle cx="8" cy="15" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/>
                 <path d="M10.6 12.4L19 4m-3 3l2.5 2.5M13.5 9.5l2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
               </svg>
-              <input id="password" name="password" type="password" autocomplete="current-password" required aria-describedby="password-error">
+              <input id="password" name="password" type="password" autocomplete="current-password" enterkeyhint="go" required aria-describedby="password-error">
               <button type="button" class="toggle-pass" id="toggle-pass" aria-controls="password" aria-pressed="false" aria-label="Show password">
-                <svg class="icon-eye" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <svg class="eye" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                  <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
-                </svg>
-                <svg class="icon-eye-off" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M4 4l16 16M9.9 5.8A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3 3.7M6.3 7.6A16.8 16.8 0 0 0 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4-.9M9.9 10a3 3 0 0 0 4.1 4.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle class="eye__pupil" cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                  <path class="eye__slash" d="M4 4l16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                 </svg>
               </button>
             </div>
@@ -207,6 +237,9 @@
       </div>
     </section>
   </main>
+
+  <!-- Screen-reader announcements for lamp and auth state -->
+  <p class="sr-only" id="sr-status" role="status" aria-live="polite" aria-atomic="true"></p>
 
   <footer class="footer">
     <p>© 2026 FutureTech.ai — Interactive UI Lab</p>
