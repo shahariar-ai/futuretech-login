@@ -315,6 +315,9 @@ html.is-page-leaving body {
   .stage { column-gap: 72px; }
 }
 
+/* A page with only the card (offline page) */
+.stage.stage--single { grid-template-columns: minmax(0, 420px); justify-content: center; }
+
 /* Reduced motion: nothing moves or flickers; colour and opacity
    changes stay as short, simple fades. */
 @media (prefers-reduced-motion: reduce) {

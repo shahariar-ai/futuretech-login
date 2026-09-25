@@ -606,6 +606,7 @@ a.link-btn { text-decoration: none; }
 }
 .notice__icon svg { width: 36px; height: 36px; }
 .notice--warn .notice__icon { color: var(--danger); background: rgba(255, 120, 120, 0.08); border-color: rgba(255, 138, 138, 0.28); }
+.notice h1,
 .notice h2 {
   margin: 14px 0 8px;
   font-size: 1.25rem;

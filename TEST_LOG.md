@@ -195,3 +195,37 @@ go back to sign in with a clear message.
 - 👤 Real Supabase only: User A cannot read or change User B's profile through the API (RLS was proven on local
   Postgres before Pause A; re-check live), the confirmation link from a real email, cross-tab sign-out in two real
   browser windows, and how the lamp/card morph *looks* in Chrome vs Firefox/Safari.
+
+## Phase 7 — Google and GitHub login
+
+- Skipped: the user said **no** to Google / GitHub login in Phase 0. `signInWithOAuth` stays in
+  `auth-service` (returns `NOT_CONFIGURED` in the demo provider), so it can be added later.
+
+## Phase 8 — Installable app (PWA)
+
+What changed: `manifest.webmanifest` ("FutureTech.ai Login", short name "FutureTech",
+`standalone`, `#0A0F1C`, start `./index.html`); PNG icons 192 / 512 / 512 maskable +
+apple-touch-icon, drawn from the hexagon mark; `sw.js` (versioned cache `futuretech-v1`,
+network first, same-origin static files only, old `futuretech-*` caches deleted on activate);
+`offline.html`; `js/ui/pwa.js` (service worker registration, an **Install app** button shown
+only after `beforeinstallprompt`, and an offline banner).
+
+- ✅ 72/72 automated checks passed.
+- ✅ Manifest fields, icon sizes and PNG format, maskable purpose, apple-touch-icon; Chromium reports
+  the manifest with no errors and the page as installable.
+- ✅ Offline: `index.html` opens from the cache, demo sign-in → dashboard works offline,
+  a page that was never cached shows the "You're offline" page, the banner appears when the connection
+  drops and hides when it comes back.
+- ✅ Supabase requests are never cached: with a mocked Supabase project, auth + REST calls pass
+  through the service worker untouched and the cache holds only this site's own files.
+- ✅ Updating the cache version deletes old `futuretech-*` caches and leaves other caches alone.
+- ✅ Install button: hidden until the browser offers install, 44px target, name "Install app"
+  (icon only on phones), opens the browser prompt, then hides.
+- ✅ No horizontal scroll or console errors at 360 / 390 / 768 / 1024 / 1440 with the install button and offline banner.
+- ✅ Earlier suites re-run after Phase 8: Phase 4 139/139, Phase 5 69/69, Phase 6 88/88.
+- 🔧 Test only: the Phase 6 check "view transition runs into the dashboard" failed once. Repeating it
+  showed headless Chromium skips about half of the cross-page transitions when the laptop is busy,
+  and the Phase 6 commit (without the PWA changes) behaves the same. It is not an app bug; the test now
+  allows up to 3 sign-ins and waits for the page event. The fade and navigation always work.
+- 👤 Real browser only: install the app from Chrome/Edge (address-bar icon or the Install app button)
+  and check it opens in its own window with the right icon. Service workers need HTTPS or localhost.

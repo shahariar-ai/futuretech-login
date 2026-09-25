@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0A0F1C">
+  <meta name="robots" content="noindex">
+  <title>FutureTech.ai — Offline</title>
+  <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/card.css">
+</head>
+<!-- Shown by the service worker when a page isn't cached and there's no connection -->
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="FutureTech.ai, go to the sign-in page">
+      <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <path d="M16 2.5l11.7 6.75v13.5L16 29.5 4.3 22.75V9.25z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M16 9v5m0 4v5M10 12.5l4.3 2.5m3.4 2l4.3 2.5M22 12.5l-4.3 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <circle cx="16" cy="16" r="2.4" fill="#FFB547"/>
+      </svg>
+      <span>FutureTech.ai</span>
+    </a>
+  </header>
+
+  <main class="stage stage--single">
+    <section class="card" aria-labelledby="offline-title">
+      <div class="card__shade" aria-hidden="true"></div>
+      <div class="card__noise" aria-hidden="true"></div>
+      <div class="card__body">
+        <div class="notice notice--warn">
+          <div class="notice__icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" focusable="false">
+              <path d="M8 19a23 23 0 0 1 32 0M14 26a14 14 0 0 1 20 0M20 33a5 5 0 0 1 8 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="M10 10l28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h1 id="offline-title">You’re offline</h1>
+          <p>This page needs a connection. Check your Wi-Fi or mobile data, then try again.</p>
+          <div class="notice__actions">
+            <a class="btn-ghost" href="index.html">Try again</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 FutureTech.ai — Interactive UI Lab</p>
+  </footer>
+</body>
+</html>
