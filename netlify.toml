@@ -1,0 +1,83 @@
+# Netlify hosting config for FutureTech.ai Login.
+# Static site: no build step, the repo root is published as-is.
+
+[build]
+  publish = "."
+  command = ""
+
+# ---------------------------------------------------------------
+# Security headers for every page and file.
+#
+# Content-Security-Policy allows only:
+#   - this site itself ('self')
+#   - jsDelivr (supabase-js is loaded from cdn.jsdelivr.net)
+#   - Google Fonts (CSS from fonts.googleapis.com, files from fonts.gstatic.com)
+#   - Supabase (https + wss on *.supabase.co)
+#   - data: images (the tiny inline SVG noise texture in the CSS)
+# No inline scripts, no inline styles, no eval.
+# If you add Firebase later, add https://www.gstatic.com to script-src and the
+# Firebase endpoints (https://*.googleapis.com) to connect-src.
+# ---------------------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' https://cdn.jsdelivr.net;
+      style-src 'self' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data:;
+      connect-src 'self' https://*.supabase.co wss://*.supabase.co;
+      manifest-src 'self';
+      worker-src 'self';
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+      frame-ancestors 'none';
+      upgrade-insecure-requests
+    """
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+    Strict-Transport-Security = "max-age=31536000"
+    Cross-Origin-Opener-Policy = "same-origin"
+
+# Netlify already serves every file with "max-age=0, must-revalidate",
+# so browsers pick up a new sw.js and new pages straight away.
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+
+# Project notes are in the repo but are not part of the website.
+[[redirects]]
+  from = "/CLAUDE_CODE_INSTRUCTIONS.md"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/TEST_LOG.md"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/PAUSE_A_CHECKLIST.md"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/SETUP_WHEN_READY.md"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/supabase/*"
+  to = "/404"
+  status = 404
+  force = true

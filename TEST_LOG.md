@@ -229,3 +229,29 @@ only after `beforeinstallprompt`, and an offline banner).
   allows up to 3 sign-ins and waits for the page event. The fade and navigation always work.
 - 👤 Real browser only: install the app from Chrome/Edge (address-bar icon or the Install app button)
   and check it opens in its own window with the right icon. Service workers need HTTPS or localhost.
+
+## Phase 9 — Deployment preparation (no deploy yet)
+
+What changed: `netlify.toml` — publish the repo root with no build; security headers on every
+response: Content-Security-Policy (only `'self'`, jsDelivr, Google Fonts, `https://` + `wss://*.supabase.co`,
+`data:` images; no `unsafe-inline`, no `unsafe-eval`, `frame-ancestors 'none'`), `X-Content-Type-Options: nosniff`,
+`Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`, `Permissions-Policy`
+(camera, microphone, geolocation, payment, usb off), HSTS, `Cross-Origin-Opener-Policy: same-origin`.
+The project notes (`*.md` files, `supabase/`) return 404 on the website.
+
+Tested with a local server that applies the `[[headers]]` from `netlify.toml` exactly.
+
+- ✅ 66/66 automated checks passed.
+- ✅ Every page and file gets all the headers; the manifest is served as `application/manifest+json`.
+- ✅ No CSP violations and no console errors while using the demo: all panels, sign in → dashboard →
+  edit name → sign out, reset-password page, offline page.
+- ✅ Google Fonts still load; the grain texture (`data:` SVG) still shows.
+- ✅ Service worker registers and the manifest has no errors under the CSP.
+- ✅ Supabase (mocked) under the CSP: supabase-js loads from jsDelivr and calls `*.supabase.co`, sign in and sign out work.
+- ✅ No horizontal scroll at 360 / 390 / 768 / 1024 / 1440 with the headers on.
+- 🔧 Test only: Node's `fetch` crashed when a response body was left unread; the test now reads every body.
+- ℹ️ The laptop was very low on memory (about 450 MB free), so one test browser failed to start the first
+  time. Re-run with one server and one browser only: passed.
+- 👤 Not done on purpose (Supabase setup postponed): pushing to GitHub, connecting Netlify, adding the live URL
+  in Supabase. Steps are in `SETUP_WHEN_READY.md`. After deploying, check the real headers once
+  (for example with <https://securityheaders.com>) and that the 404 rules for the notes work.
