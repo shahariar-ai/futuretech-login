@@ -29,3 +29,16 @@ export function navigate(url, { replace = false } = {}) {
 window.addEventListener('pageshow', (event) => {
   if (event.persisted) document.documentElement.classList.remove('is-page-leaving');
 });
+
+// The browser may skip a cross-document transition (for example when the
+// next page renders late). The page still navigates normally; this only
+// stops the skipped transition from surfacing as an unhandled error.
+function quietlySkip(event) {
+  const transition = event.viewTransition;
+  if (!transition) return;
+  [transition.ready, transition.updateCallbackDone, transition.finished].forEach((promise) => {
+    if (promise) promise.catch(() => {});
+  });
+}
+window.addEventListener('pageswap', quietlySkip);
+window.addEventListener('pagereveal', quietlySkip);

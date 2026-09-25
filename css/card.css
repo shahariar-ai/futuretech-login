@@ -361,6 +361,7 @@
   text-underline-offset: 4px;
   vertical-align: middle;
 }
+a.link-btn { text-decoration: none; }
 .link-btn:hover { text-decoration: underline; }
 
 /* Status / error message: slides in gently; role="status" announces it */

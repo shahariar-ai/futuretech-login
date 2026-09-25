@@ -135,3 +135,30 @@ email field; strength meter; resend confirmation with 60s cooldown; Remember me
 - 👤 Real Supabase only: the confirmation email actually arrives, its link signs you in, `email_not_confirmed`
   wording from the live server, real rate limits, closing the browser really ends a "Remember me off" session
   (some browsers restore sessions on restart).
+
+## Phase 5 — Reset password page
+
+What changed: `reset-password.html` + `js/pages/reset-password.js` (same lamp and card).
+The page reads the email link through `auth-service.handleAuthRedirect()` (and also
+listens for `PASSWORD_RECOVERY`), shows "Choose a new password" with the strength meter,
+calls `updatePassword`, then closes the one-time recovery session so the next sign-in
+uses the new password. Expired, used, invalid or missing links get a clear message and
+a "Request a new link" button (→ `index.html#forgot`).
+
+- ✅ 69/69 automated checks passed (and the Phase 4 suite still passes 139/139).
+- ✅ Demo end to end: Forgot password → demo email link → form → validation (empty, weak, mismatch)
+  → "Password updated", lamp on, announced → session closed → "Back to sign in" stays on sign in.
+- ✅ Link tokens / errors are removed from the address bar. Reloading during a recovery keeps the form.
+  A used demo link, a missing link and `otp_expired` all show the "invalid or expired" panel.
+- ✅ Layout at 360 / 390 / 768 / 1024 / 1440 for the invalid, form and done panels: no horizontal scroll,
+  touch targets ≥ 44px, no console errors.
+- ✅ Supabase (mocked): recovery link tokens verified with `GET /auth/v1/user`; `PUT /auth/v1/user`
+  sends the new password with the recovery token; `POST /auth/v1/logout` afterwards; nothing left in storage.
+  `same_password` → message + field; `weak_password`, `429`, network error → messages;
+  server rejects the token → invalid panel.
+- 🔧 Chromium sometimes skips a cross-page view transition when the next page is ready very early, and
+  then prints "Uncaught (in promise) InvalidStateError: Transition was aborted…". The navigation itself
+  works. Fixed with `js/vt-guard.js`, a tiny script at the top of each page that marks only that error as handled
+  (checked over 16 repeated navigations: 0 errors).
+- 🔧 Link-style anchors no longer underlined until hover (matched the link buttons).
+- 👤 Real Supabase only: the reset email arrives, its link opens this page, the new password works and the old one doesn't.
