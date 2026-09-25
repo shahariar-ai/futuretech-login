@@ -4,7 +4,8 @@ A login experience where a desk lamp reacts to you. It leans toward the form whe
 
 Behind the lamp is a real multi-user app: create an account, confirm your email, sign in, reset a forgotten password, and edit your profile on a private dashboard. It installs on a laptop as an app (PWA).
 
-**Live demo:** _coming soon (Netlify link goes here after deployment)_
+**Live demo:** _coming soon (Netlify link goes here after deployment)_  
+**Source code:** [github.com/shahariar-ai/futuretech-login](https://github.com/shahariar-ai/futuretech-login)
 
 > Until the Supabase project is connected, the site runs in **Demo mode** (a visible badge says so). Every flow works, but nothing is checked or stored on a server. Filling in two public values in `js/config.js` switches it to real accounts. See [SETUP_WHEN_READY.md](SETUP_WHEN_READY.md).
 
