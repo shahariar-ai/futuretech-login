@@ -288,11 +288,19 @@ function showError(messageEl, text, withShake = true) {
   if (withShake) shake(card);
 }
 
+/** Notes passed in the address: ?signedout=1 (from the dashboard), ?link=expired */
 function showSignedOutNote() {
   const url = new URL(window.location.href);
-  if (!url.searchParams.has('signedout')) return;
+  const signedOut = url.searchParams.has('signedout');
+  const expired = url.searchParams.get('link') === 'expired';
+  if (!signedOut && !expired) return;
   url.searchParams.delete('signedout');
+  url.searchParams.delete('link');
   window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+  if (expired) {
+    setMessage($('signin-message'), 'That link is invalid or has expired. Sign in, and we’ll offer to send a new one if needed.', 'is-error');
+    return;
+  }
   setMessage($('signin-message'), 'Signed out. See you soon.', 'is-info');
   announce('Signed out. Light off.');
 }

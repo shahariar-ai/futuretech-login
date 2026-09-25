@@ -162,3 +162,36 @@ a "Request a new link" button (→ `index.html#forgot`).
   (checked over 16 repeated navigations: 0 errors).
 - 🔧 Link-style anchors no longer underlined until hover (matched the link buttons).
 - 👤 Real Supabase only: the reset email arrives, its link opens this page, the new password works and the old one doesn't.
+
+## Phase 6 — Dashboard, profile, sign out, page transitions
+
+What changed: `dashboard.html`, `css/dashboard.css`, `js/pages/dashboard.js`.
+The body starts as `.is-guarding` (private card hidden) until the session check passes.
+Shows "Welcome, {name}", email, member-since date and email status, with a small lit lamp
+in the header. Full name can be edited (Supabase: `profiles` table through RLS). Sign out
+turns the lamp off and returns to sign in; signing out in one tab signs out the others.
+Cross-document View Transitions morph the lamp and card between pages
+(`@view-transition`, `.vt-lamp`, `.vt-card`), with a fade fallback in `transitions.js`.
+Sign-up confirmation links land on the dashboard ("Email confirmed"); expired links
+go back to sign in with a clear message.
+
+- ✅ 88/88 automated checks passed (Phase 4: 139/139 and Phase 5: 69/69 re-run, still passing).
+- ✅ Signed out → `dashboard.html` redirects to sign in with **no painted frame** of the private card (demo and mocked Supabase).
+- ✅ Content: name, email, member since, "Confirmed", lamp lit, "Signed in as …" announced.
+- ✅ Profile: empty name → error; unchanged → "No changes to save."; saved → welcome updates;
+  `<b>` in a name stays plain text (textContent); kept after reload.
+- ✅ Sign out → "Signed out" on sign in, address cleaned, session removed; dashboard redirects again;
+  the Back button doesn't bring the dashboard back.
+- ✅ Cross-tab sign-out: demo (Remember me on and off) and Supabase (supabase-js BroadcastChannel).
+- ✅ Layout at 360 / 390 / 768 / 1024 / 1440 with a very long email: no horizontal scroll, touch targets ≥ 44px, no console errors.
+- ✅ Page transitions: Chromium runs a view transition into the dashboard; a browser without
+  cross-document transitions gets the fade-out; reduced motion navigates with no animation.
+- ✅ Supabase (mocked): `GET /rest/v1/profiles?id=eq.<own id>` with the user's token; name from the profile row;
+  `PATCH /rest/v1/profiles {full_name}` → "Saved"; RLS returning 0 rows → error (not "Saved");
+  500 → message; expired JWT (`PGRST301`) → back to sign in; network error → message;
+  profile load failure → note, dashboard still works; `POST /auth/v1/logout` and storage cleared on sign out;
+  confirmation link with tokens → "Email confirmed", tokens removed from the address bar.
+- 🔧 The first "no flash" probe also sampled before the stylesheet loaded (nothing painted yet); changed it to check painted frames only.
+- 👤 Real Supabase only: User A cannot read or change User B's profile through the API (RLS was proven on local
+  Postgres before Pause A; re-check live), the confirmation link from a real email, cross-tab sign-out in two real
+  browser windows, and how the lamp/card morph *looks* in Chrome vs Firefox/Safari.
