@@ -66,7 +66,8 @@ body::before {
   opacity: 0;
   transition: opacity 0.9s var(--ease-out);
 }
-.is-peeking .ambient { opacity: 0.3; }
+.is-peeking .ambient,
+.is-glowing .ambient { opacity: 0.3; }
 .is-lit .ambient     { opacity: 1; }
 
 /* ---------- Floating dust particles ---------- */
@@ -153,6 +154,37 @@ body::before {
   border-radius: 8px;
 }
 .brand__mark { width: 28px; height: 28px; color: var(--cyan); flex: none; }
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.install-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(92, 225, 230, 0.35);
+  border-radius: 999px;
+  background: rgba(92, 225, 230, 0.06);
+  color: #C8F4F6;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.install-btn[hidden] { display: none; }
+.install-btn svg { width: 16px; height: 16px; flex: none; }
+.install-btn:hover { background: rgba(92, 225, 230, 0.12); border-color: rgba(92, 225, 230, 0.55); }
+.install-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+@media (max-width: 419px) {
+  .install-btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .install-btn { width: 44px; justify-content: center; padding: 0; }
+}
+
 .demo-badge {
   font-size: 0.75rem;
   color: var(--muted);
@@ -211,6 +243,58 @@ body::before {
   text-align: center;
 }
 .footer p { margin: 0; font-size: 0.8125rem; color: var(--muted); }
+
+/* ---------- Offline banner (added by pwa.js) ---------- */
+.offline-banner {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 20;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  margin: 0;
+  padding: 10px 16px;
+  transform: translateX(-50%);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 138, 138, 0.35);
+  background: rgba(30, 14, 18, 0.94);
+  color: #FFD2D2;
+  font-size: 0.875rem;
+  text-align: center;
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.7);
+}
+.offline-banner[hidden] { display: none; }
+
+/* =========================================================
+   Page transitions
+   ---------------------------------------------------------
+   Cross-document View Transitions (Chromium 126+, Safari 18.2+):
+   the lamp and the card morph from one page to the next.
+   Other browsers: transitions.js fades out, the page fades in.
+   ========================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .vt-lamp { view-transition-name: lamp; }
+  .vt-card { view-transition-name: card; }
+  ::view-transition-group(*) {
+    animation-duration: 0.45s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation-duration: 0.3s; }
+}
+
+html.is-page-leaving body {
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+@supports not (view-transition-name: none) {
+  body { animation: page-in 0.35s var(--ease-out) both; }
+}
+@keyframes page-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
 /* =========================================================
    Breakpoints

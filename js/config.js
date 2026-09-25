@@ -18,8 +18,15 @@
    Those only belong in the provider dashboards.
    ========================================================= */
 
-/** Which auth provider the app uses: 'demo' | 'supabase' | 'firebase' */
-export const AUTH_PROVIDER = 'demo';
+/**
+ * Which auth provider the app uses: 'auto' | 'demo' | 'supabase' | 'firebase'
+ *
+ * 'auto' (recommended): Supabase when both SUPABASE_CONFIG values
+ * below are filled in, otherwise the demo provider (with a visible
+ * "Demo mode" badge). Filling in the two values is all it takes to
+ * switch to real accounts.
+ */
+export const AUTH_PROVIDER = 'auto';
 
 export const SUPABASE_CONFIG = {
   url: '',     // e.g. 'https://abcdefghijkl.supabase.co'

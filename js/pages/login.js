@@ -1,194 +1,307 @@
 /* =========================================================
-   Sign-in page controller.
+   Sign-in page controller: three panels in one card
+   (sign in, create account, forgot password) plus the
+   "check your inbox" and "signed in" views.
    Talks to auth-service only; results drive the lamp and
    the body classes (is-peeking / is-lit / is-authed).
    ========================================================= */
 
 import * as auth from '../auth/auth-service.js';
-import { validateSignIn } from '../validation.js';
-import { initLamp, setPeeking, turnLampOn, turnLampOff, flickerOut, createParticles } from '../ui/lamp.js';
-import { setMessage, shake, initShake, setFieldError, clearFieldError, setLoading, announce } from '../ui/feedback.js';
-import { swapPanel, showPanelNow } from '../ui/panels.js';
+import { validateSignIn, validateSignUp, validateEmailOnly } from '../validation.js';
+import { initLamp, setPeeking, setGlow, turnLampOn, flickerOut } from '../ui/lamp.js';
+import {
+  setMessage, shake, initShake, setFieldError, setLoading, announce, setDemoLink,
+  initPasswordToggles, hideAllPasswords, startCooldown, clearErrorsOnInput, applyFieldErrors,
+} from '../ui/feedback.js';
+import { createPanels } from '../ui/panels.js';
+import { bindStrengthMeter } from '../ui/strength.js';
+import { navigate } from '../ui/transitions.js';
+import { initAppShell } from '../ui/app-shell.js';
 
-const REMEMBER_KEY = 'futuretech-demo-username'; // stores the username only, never the password
+const { ERROR_CODES } = auth;
+const REDIRECT_DELAY_MS = 1500;
+const RESEND_COOLDOWN_S = 60;
+const LEGACY_USERNAME_KEY = 'futuretech-demo-username'; // Phase 1 stored a username; no longer used
 
-const INFO_MESSAGES = {
-  forgot: 'Password recovery isn’t part of this demo. A real version would email you a reset link.',
-  create: 'Account creation isn’t part of this demo. Any username and password will sign you in.',
-};
+const $ = (id) => document.getElementById(id);
+const state = { busy: false, leaving: false, pendingEmail: '' };
+let panels;
+let card;
 
-const SUBMIT_LABELS = { idle: 'Sign in', busy: 'Signing in…' };
+async function init() {
+  card = $('card');
+  initAppShell();
+  initLamp({ cord: $('lamp-cord'), onChange: (isOn) => announce(isOn ? 'Light on' : 'Light off') });
+  initShake(card);
+  initPasswordToggles(card);
+  bindStrengthMeter($('signup-password'), $('signup-strength'));
+  $('demo-tips').hidden = !auth.isDemo;
 
-const state = { busy: false, authed: false };
-const dom = {};
-
-function init() {
-  dom.body = document.body;
-  dom.card = document.getElementById('card');
-  dom.form = document.getElementById('login-form');
-  dom.username = document.getElementById('username');
-  dom.password = document.getElementById('password');
-  dom.remember = document.getElementById('remember');
-  dom.togglePass = document.getElementById('toggle-pass');
-  dom.submit = document.getElementById('submit-btn');
-  dom.message = document.getElementById('form-message');
-  dom.lock = document.getElementById('lock');
-  dom.success = document.getElementById('success');
-  dom.successTitle = document.getElementById('success-title');
-  dom.successName = document.getElementById('success-name');
-  dom.cardTitle = document.getElementById('card-title');
-  dom.cardSub = document.getElementById('card-sub');
-  dom.signOut = document.getElementById('signout-btn');
-  dom.demoBadge = document.getElementById('demo-badge');
-
-  dom.demoBadge.hidden = !auth.isDemo;
-
-  initLamp({
-    cord: document.getElementById('lamp-cord'),
-    onChange: (isOn) => announce(isOn ? 'Light on' : 'Light off'),
+  panels = createPanels({
+    container: $('panels'),
+    titleEl: $('card-title'),
+    subEl: $('card-sub'),
+    onChange: onPanelChange,
   });
-  initShake(dom.card);
+
   bindEvents();
-  restoreRememberedUser();
-  createParticles(document.getElementById('particles'));
+  forgetLegacyUsername();
+  showSignedOutNote();
+  openPanelFromHash({ focus: false });
+
+  // Session guard: already signed in → straight to the dashboard
+  const session = await auth.getSession();
+  if (session && !state.leaving) {
+    state.leaving = true;
+    navigate('dashboard.html', { replace: true });
+  }
 }
 
 function bindEvents() {
-  // Enter key submits through the native form submit event
-  dom.form.addEventListener('submit', handleSubmit);
+  $('panel-signin').addEventListener('submit', handleSignIn);
+  $('panel-signup').addEventListener('submit', handleSignUp);
+  $('panel-forgot').addEventListener('submit', handleForgot);
+  $('signin-resend-btn').addEventListener('click', () => resend($('signin-resend-btn'), $('signin-message'), $('signin-demo-link')));
+  $('check-resend-btn').addEventListener('click', () => resend($('check-resend-btn'), $('check-message'), $('check-demo-link')));
 
-  // Lamp leans toward the form while the password field is focused
-  dom.password.addEventListener('focus', () => setPeeking(true));
-  dom.password.addEventListener('blur', () => setPeeking(false));
+  document.querySelectorAll('[data-go]').forEach((button) => {
+    button.addEventListener('click', () => goTo(button.dataset.go));
+  });
+  window.addEventListener('hashchange', () => openPanelFromHash());
 
-  dom.togglePass.addEventListener('click', togglePassword);
-
-  // Clear a field's error as soon as the user types into it
-  [dom.username, dom.password].forEach((input) => {
-    input.addEventListener('input', () => {
-      if (clearFieldError(input) && dom.message.classList.contains('is-error')) setMessage(dom.message, '');
-    });
+  // The lamp leans toward the form while a password field is focused
+  card.querySelectorAll('input[type=password]').forEach((input) => {
+    input.addEventListener('focus', () => setPeeking(true));
+    input.addEventListener('blur', () => setPeeking(false));
   });
 
-  document.querySelectorAll('[data-info]').forEach((button) => {
-    button.addEventListener('click', () => setMessage(dom.message, INFO_MESSAGES[button.dataset.info], 'is-info'));
-  });
+  clearErrorsOnInput([$('signin-email'), $('signin-password')], $('signin-message'));
+  clearErrorsOnInput([$('signup-name'), $('signup-email'), $('signup-password'), $('signup-confirm')], $('signup-message'));
+  clearErrorsOnInput([$('forgot-email')], $('forgot-message'));
+}
 
-  dom.signOut.addEventListener('click', handleSignOut);
+/* ---------- Panel navigation ---------- */
+const HASH_TO_PANEL = { '#signup': 'signup', '#create': 'signup', '#forgot': 'forgot' };
+
+function goTo(name) {
+  if (state.leaving) return;
+  // Carry the email over, so it never has to be typed twice
+  const email = [$('signin-email'), $('signup-email'), $('forgot-email')].map((i) => i.value.trim()).find(Boolean)
+    || state.pendingEmail;
+  const target = { signin: 'signin-email', signup: 'signup-email', forgot: 'forgot-email' }[name];
+  if (target && email && !$(target).value) $(target).value = email;
+  panels.show(name);
+}
+
+function openPanelFromHash({ focus = 'first' } = {}) {
+  if (state.leaving) return;
+  const name = HASH_TO_PANEL[window.location.hash] || 'signin';
+  const current = panels.current().id.replace('panel-', '');
+  if (current === name || (name === 'signin' && current !== 'signup' && current !== 'forgot')) return;
+  panels.show(name, { focus });
+}
+
+function onPanelChange(panel) {
+  const name = panel.id.replace('panel-', '');
+  hideAllPasswords(card);
+  setPeeking(false);
+  if (name !== 'check') setGlow(false);
+
+  const hash = { signup: '#signup', forgot: '#forgot' }[name] || '';
+  if (window.location.hash !== hash) {
+    window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search + hash);
+  }
 }
 
 /* ---------- Sign in ---------- */
-async function handleSubmit(event) {
+async function handleSignIn(event) {
   event.preventDefault();
-  if (state.busy || state.authed) return;
+  if (state.busy || state.leaving) return;
 
-  setMessage(dom.message, '');
-  const identifier = dom.username.value.trim();
-  const password = dom.password.value;
-  const result = validateSignIn({ identifier, password });
+  const emailInput = $('signin-email');
+  const passwordInput = $('signin-password');
+  const message = $('signin-message');
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
 
-  applyFieldError(dom.username, result.errors.identifier);
-  applyFieldError(dom.password, result.errors.password);
+  $('signin-resend').hidden = true;
+  setDemoLink($('signin-demo-link'), null);
+  setMessage(message, '');
 
-  if (!result.valid) {
-    showError(result.message);
-    (result.errors.identifier ? dom.username : dom.password).focus();
+  const check = validateSignIn({ email, password });
+  const firstInvalid = applyFieldErrors({ email: emailInput, password: passwordInput }, check.errors);
+  if (!check.valid) {
+    showError(message, check.message);
+    firstInvalid.focus();
     return;
   }
 
-  setBusy(true);
-  // Phase 4 switches this field to a real email address
-  const response = await auth.signIn({ email: identifier, password, remember: dom.remember.checked });
-  setBusy(false);
+  const result = await busy($('signin-submit'), 'Signing in…', () =>
+    auth.signIn({ email, password, remember: $('remember').checked }));
 
-  if (!response.ok) {
+  if (!result.ok) {
     flickerOut();
-    showError(response.error.message);
+    const { code, message: text } = result.error;
+    if (code === ERROR_CODES.EMAIL_NOT_CONFIRMED) {
+      setMessage(message, text, 'is-error');
+      state.pendingEmail = email;
+      $('signin-resend').hidden = false;
+      return;
+    }
+    showError(message, text, code === ERROR_CODES.INVALID_CREDENTIALS);
+    if (code === ERROR_CODES.INVALID_EMAIL) setFieldError(emailInput, text);
     return;
   }
 
-  saveRememberedUser(identifier);
+  passwordInput.value = '';
+  signedIn(result.user);
+}
+
+function signedIn(user) {
+  state.leaving = true;
+  const name = user.fullName || user.email;
   turnLampOn();
-  showSuccess(response.user.fullName);
-}
-
-function applyFieldError(input, text) {
-  if (text) setFieldError(input, text);
-  else clearFieldError(input);
-}
-
-function setBusy(isBusy) {
-  state.busy = isBusy;
-  setLoading(dom.submit, isBusy, SUBMIT_LABELS);
-}
-
-function showError(text) {
-  setMessage(dom.message, text, 'is-error');
-  shake(dom.card);
-}
-
-function showSuccess(name) {
-  state.authed = true;
-  dom.body.classList.add('is-authed');
-  dom.lock.setAttribute('aria-label', 'Unlocked');
-  dom.successName.textContent = name;
-  setHeading('Signed in', 'The light is on.');
+  document.body.classList.add('is-authed');
+  $('lock').setAttribute('aria-label', 'Unlocked');
+  $('success-name').textContent = name;
   announce(`Signed in as ${name}. Light on.`);
-  swapPanel(dom.form, dom.success, { focusEl: dom.successTitle });
+  panels.show('success', { focus: $('success-title') });
+  window.setTimeout(() => navigate('dashboard.html'), REDIRECT_DELAY_MS);
 }
 
-function setHeading(title, subtitle) {
-  dom.cardTitle.textContent = title;
-  dom.cardSub.textContent = subtitle;
+/* ---------- Create account ---------- */
+async function handleSignUp(event) {
+  event.preventDefault();
+  if (state.busy || state.leaving) return;
+
+  const fields = {
+    fullName: $('signup-name'),
+    email: $('signup-email'),
+    password: $('signup-password'),
+    confirm: $('signup-confirm'),
+  };
+  const values = {
+    fullName: fields.fullName.value.trim(),
+    email: fields.email.value.trim(),
+    password: fields.password.value,
+    confirm: fields.confirm.value,
+  };
+  const message = $('signup-message');
+  setMessage(message, '');
+
+  const check = validateSignUp(values);
+  const firstInvalid = applyFieldErrors(fields, check.errors);
+  if (!check.valid) {
+    showError(message, check.message);
+    firstInvalid.focus();
+    return;
+  }
+
+  const result = await busy($('signup-submit'), 'Creating account…', () =>
+    auth.signUp({ fullName: values.fullName, email: values.email, password: values.password }));
+
+  if (!result.ok) {
+    const { code, message: text } = result.error;
+    showError(message, text);
+    if (code === ERROR_CODES.WEAK_PASSWORD) setFieldError(fields.password, text);
+    if (code === ERROR_CODES.INVALID_EMAIL) setFieldError(fields.email, text);
+    return;
+  }
+
+  fields.password.value = '';
+  fields.confirm.value = '';
+  fields.password.dispatchEvent(new Event('input')); // reset the strength meter
+
+  // Email confirmation switched off in the provider: already signed in
+  if (result.needsConfirmation === false) {
+    signedIn(result.user);
+    return;
+  }
+
+  state.pendingEmail = values.email;
+  $('check-address').textContent = values.email;
+  setMessage($('check-message'), '');
+  setDemoLink($('check-demo-link'), result.demoLink);
+  setGlow(true);
+  announce('Account created. Check your inbox to confirm your email.');
+  panels.show('check', { focus: $('check-title') });
 }
 
-/* ---------- Sign out: back to the signed-out state, lamp off ---------- */
-async function handleSignOut() {
-  await auth.signOut();
-  state.authed = false;
-  dom.body.classList.remove('is-authed');
-  dom.lock.setAttribute('aria-label', 'Locked');
-  turnLampOff();
-  setHeading('Sign in', 'Switch on the light to enter the lab.');
-
-  showPanelNow(dom.success, dom.form);
-
-  dom.password.value = '';
-  if (dom.password.type === 'text') togglePassword();
-  if (!dom.remember.checked) dom.username.value = '';
-  setMessage(dom.message, 'Signed out.', 'is-info');
-  announce('Signed out. Light off.');
-
-  (dom.username.value ? dom.password : dom.username).focus();
+/* ---------- Resend the confirmation email ---------- */
+async function resend(button, message, demoLinkEl) {
+  if (!state.pendingEmail || button.disabled) return;
+  button.disabled = true;
+  const result = await auth.resendConfirmation(state.pendingEmail);
+  if (!result.ok) {
+    button.disabled = false;
+    setMessage(message, result.error.message, 'is-error');
+    return;
+  }
+  setMessage(message, 'Confirmation email sent. Check your inbox and spam folder.', 'is-success');
+  setDemoLink(demoLinkEl, result.demoLink);
+  startCooldown(button, RESEND_COOLDOWN_S, 'Resend email');
 }
 
-/* ---------- Password visibility ---------- */
-function togglePassword() {
-  const show = dom.password.type === 'password';
-  dom.password.type = show ? 'text' : 'password';
-  dom.togglePass.setAttribute('aria-pressed', String(show));
-  dom.togglePass.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+/* ---------- Forgot password ---------- */
+async function handleForgot(event) {
+  event.preventDefault();
+  if (state.busy || state.leaving) return;
+
+  const emailInput = $('forgot-email');
+  const message = $('forgot-message');
+  const email = emailInput.value.trim();
+  setMessage(message, '');
+  setDemoLink($('forgot-demo-link'), null);
+
+  const check = validateEmailOnly(email);
+  if (applyFieldErrors({ email: emailInput }, check.errors)) {
+    showError(message, check.message);
+    emailInput.focus();
+    return;
+  }
+
+  const result = await busy($('forgot-submit'), 'Sending…', () => auth.requestPasswordReset(email));
+  if (!result.ok) {
+    showError(message, result.error.message);
+    return;
+  }
+  // Same answer whether or not the account exists
+  setMessage(message, 'If an account exists for this email, a reset link is on its way.', 'is-info');
+  setDemoLink($('forgot-demo-link'), result.demoLink);
 }
 
-/* ---------- Remember me: the USERNAME only, never the password ---------- */
-function saveRememberedUser(identifier) {
+/* ---------- Shared helpers ---------- */
+async function busy(button, busyLabel, action) {
+  state.busy = true;
+  const idle = button.querySelector('.btn__label').textContent;
+  setLoading(button, true, { idle, busy: busyLabel });
   try {
-    if (dom.remember.checked) localStorage.setItem(REMEMBER_KEY, identifier);
-    else localStorage.removeItem(REMEMBER_KEY);
-  } catch (error) {
-    // Storage can be blocked (private mode); sign-in still works
+    return await action();
+  } finally {
+    setLoading(button, false, { idle, busy: busyLabel });
+    state.busy = false;
   }
 }
 
-function restoreRememberedUser() {
+function showError(messageEl, text, withShake = true) {
+  setMessage(messageEl, text, 'is-error');
+  if (withShake) shake(card);
+}
+
+function showSignedOutNote() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has('signedout')) return;
+  url.searchParams.delete('signedout');
+  window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+  setMessage($('signin-message'), 'Signed out. See you soon.', 'is-info');
+  announce('Signed out. Light off.');
+}
+
+function forgetLegacyUsername() {
   try {
-    const saved = localStorage.getItem(REMEMBER_KEY);
-    if (saved) {
-      dom.username.value = saved;
-      dom.remember.checked = true;
-    }
+    localStorage.removeItem(LEGACY_USERNAME_KEY);
   } catch (error) {
-    // Ignore: nothing remembered
+    // Storage blocked: nothing to clean up
   }
 }
 

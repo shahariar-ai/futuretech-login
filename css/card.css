@@ -173,9 +173,18 @@
 }
 .is-authed .lock__shackle { transform: translateY(-2px) rotate(24deg); }
 
+/* ---------- Panels (sign in / create account / forgot…) ---------- */
+.panels { position: relative; }
+.panels.is-resizing { overflow: clip; }
+.panel {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.28s var(--ease-out), transform 0.36s var(--ease-out);
+}
+.panel.is-visible { opacity: 1; transform: none; }
+.panel.is-leaving { opacity: 0; transform: translateY(-6px); transition-duration: 0.18s; }
+
 /* ---------- Form fields ---------- */
-.login-form { transition: opacity 0.3s, transform 0.3s var(--ease-out); }
-.login-form.is-leaving { opacity: 0; transform: translateY(-8px); }
 
 .field { margin-bottom: 18px; }
 .field label {
@@ -454,11 +463,8 @@
 .success {
   text-align: center;
   padding: 8px 0 4px;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
 }
-.success.is-visible { opacity: 1; transform: none; }
+.success .btn-ghost { display: inline-flex; align-items: center; text-decoration: none; }
 .success h2 {
   margin: 14px 0 8px;
   font-size: 1.375rem;
@@ -508,6 +514,134 @@
   100% { opacity: 0;   transform: scale(2.1); }
 }
 
+/* ---------- Password strength meter ---------- */
+.strength { margin-top: 10px; }
+.strength__bars {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.strength__bars span {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(201, 211, 230, 0.16);
+  transition: background-color 0.3s var(--ease-out);
+}
+.strength[data-level="weak"] .strength__bars span:nth-child(1) { background: #FF8A8A; }
+.strength[data-level="okay"] .strength__bars span:nth-child(-n+2) { background: var(--amber); }
+.strength[data-level="strong"] .strength__bars span { background: #7EE0A1; }
+.strength__text {
+  margin: 6px 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.strength[data-level="weak"] .strength__text { color: var(--danger); }
+.strength[data-level="strong"] .strength__text { color: #9BEBB8; }
+
+/* ---------- Small actions under a message ---------- */
+.message-actions { margin: -4px 0 16px; }
+.btn-small { min-height: 44px; padding: 0 16px; font-size: 0.875rem; }
+.btn-ghost:disabled,
+.btn-ghost:disabled:hover {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: rgba(255, 181, 71, 0.06);
+}
+
+/* Demo mode: the "email link" that stands in for a real email */
+.demo-link {
+  margin: -6px 0 16px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.demo-link a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--amber-link);
+  font-weight: 500;
+  text-underline-offset: 4px;
+  border-radius: 6px;
+}
+.demo-link a:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+.demo-tips {
+  margin-top: 14px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.demo-tips summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.demo-tips summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.demo-tips p { margin: 0 0 6px; }
+.demo-tips ul { margin: 0; padding-left: 18px; }
+.demo-tips li { margin: 3px 0; overflow-wrap: anywhere; }
+.demo-tips code {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.8125rem;
+  color: var(--text);
+}
+
+/* ---------- Notice panels (check your inbox, link expired) ---------- */
+.notice { text-align: center; padding: 4px 0; }
+.notice__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 6px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  color: var(--amber);
+  background: rgba(255, 181, 71, 0.08);
+  border: 1px solid rgba(255, 181, 71, 0.25);
+}
+.notice__icon svg { width: 36px; height: 36px; }
+.notice--warn .notice__icon { color: var(--danger); background: rgba(255, 120, 120, 0.08); border-color: rgba(255, 138, 138, 0.28); }
+.notice h2 {
+  margin: 14px 0 8px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  outline: none;
+}
+.notice p {
+  margin: 0 auto 18px;
+  max-width: 34ch;
+  font-size: 0.9375rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.notice p strong { color: var(--text); font-weight: 500; }
+.notice .form-message,
+.notice .demo-link { text-align: left; max-width: none; }
+.notice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 16px;
+}
+.notice__actions .btn-ghost { display: inline-flex; align-items: center; text-decoration: none; }
+
+/* Link check spinner (reset page) */
+.loader {
+  width: 36px;
+  height: 36px;
+  margin: 12px auto 14px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 181, 71, 0.2);
+  border-top-color: var(--amber);
+  animation: spin 0.8s linear infinite;
+}
+
 /* =========================================================
    Breakpoints
    ========================================================= */
@@ -543,8 +677,8 @@
   .btn-ghost:active,
   .field:focus-within label,
   .field__control:focus-within .field__icon { transform: none; }
-  .login-form.is-leaving,
-  .success { transform: none; }
+  .panel,
+  .panel.is-leaving { transform: none; }
   .success__ring,
   .success__tick { stroke-dashoffset: 0; }
 }

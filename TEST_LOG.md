@@ -89,4 +89,49 @@ deleted afterwards; nothing touched Supabase.
 - ✅ Deleting an auth user deletes their profile (cascade).
 - 👤 Must be re-checked on the real Supabase project in Phase 10 (User A vs User B through the API).
 
-**Status: stopped at Pause A.** Next step for the human: follow `PAUSE_A_CHECKLIST.md`.
+**Change of plan (2026-09-25):** Supabase setup is postponed. Phases 4–8 and the
+Phase 9 preparation were built without Supabase credentials. `AUTH_PROVIDER = 'auto'`
+uses the demo provider until the Supabase URL + anon key are filled in.
+The Supabase provider is tested against **mocked Supabase HTTP responses**
+(Playwright route interception: a patched `config.js` points the app at
+`https://mockproj.supabase.co`, and every `/auth/v1/*` and `/rest/v1/*` call is
+answered by the test). The real `supabase-js@2.117.1` library from jsDelivr runs
+unchanged in these tests.
+
+## Phase 4 — Sign in, create account, forgot password
+
+What changed: `AUTH_PROVIDER = 'auto'`; real `supabase-provider.js`
+(supabase-js 2.117.1 pinned, implicit flow, all errors mapped); demo provider that
+supports every flow without storing passwords; one card with Sign in / Create account /
+Check your inbox / Forgot password / Signed in panels (crossfade + height animation);
+email field; strength meter; resend confirmation with 60s cooldown; Remember me
+(localStorage vs sessionStorage); session guard; new error codes `INVALID_EMAIL`,
+`LINK_EXPIRED`, `SAME_PASSWORD`, `SESSION_MISSING`.
+
+- ✅ 139/139 automated checks passed.
+- ✅ All panels at 360 / 390 / 768 / 1024 / 1440: no horizontal scroll, every touch target ≥ 44px, no console errors.
+- ✅ Demo: empty / bad email validation, wrong password (flicker + shake + generic message),
+  unconfirmed → Resend (success message, countdown, demo email link), rate limited, network error,
+  success → lamp on, unlocked, "Signed in as …" announced, redirect to `dashboard.html` after ~1.5s.
+- ✅ Remember me off → session in `sessionStorage`; on → `localStorage`. The password is never in any storage.
+- ✅ Session guard: opening `index.html` while signed in goes to the dashboard.
+- ✅ Create account: all four fields validated, strength meter weak / okay / strong, mismatch error,
+  success → "Check your inbox", lamp glows faintly (not fully on), password fields cleared, resend works,
+  email carried back to the sign-in panel.
+- ✅ Forgot password: always the same neutral message; `index.html#forgot` and `#signup` open the right panel.
+- ✅ Keyboard only (Tab / Enter) sign in; focus goes to the welcome heading. Reduced motion: no particles.
+- ✅ Supabase (mocked): `POST /auth/v1/token?grant_type=password` with the anon key header;
+  `invalid_credentials` → generic message; `email_not_confirmed` → message + `POST /auth/v1/resend {type: signup}`;
+  `429` → rate-limit message; aborted request → network message; success → name from metadata,
+  session stored per Remember me, only `futuretech-remember` = 0/1 stored as the choice.
+- ✅ Supabase (mocked): sign-up sends trimmed `full_name` and `redirect_to=…/dashboard.html`;
+  an already-registered email gets the same "check your inbox" (no account enumeration);
+  server `weak_password` → message + field flagged; confirmation off → signed in straight away;
+  forgot → `redirect_to=…/reset-password.html`, unknown email still neutral, `429` → rate-limit message.
+- ✅ If supabase-js can't be downloaded (CDN blocked) the page shows a clean error, no uncaught exceptions.
+- 🔧 Panel fade-in used `requestAnimationFrame`, which was sometimes not fired in headless runs; replaced with a forced reflow.
+- ℹ️ With a real server, Chrome itself prints "Failed to load resource: 400" in the console for a wrong
+  password (and 429 for rate limits). That line comes from the browser, not the app; the tests allow only that line.
+- 👤 Real Supabase only: the confirmation email actually arrives, its link signs you in, `email_not_confirmed`
+  wording from the live server, real rate limits, closing the browser really ends a "Remember me off" session
+  (some browsers restore sessions on restart).

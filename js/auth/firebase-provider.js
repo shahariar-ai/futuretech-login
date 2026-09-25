@@ -58,6 +58,20 @@ const firebaseProvider = {
   // signInWithRedirect(auth, new GoogleAuthProvider() | new GithubAuthProvider())
   signInWithOAuth: notConfigured,
 
+  // Read the profile document (Firestore) or auth.currentUser:
+  // getDoc(doc(db, 'profiles', auth.currentUser.uid)) → map to the User shape.
+  getProfile: notConfigured,
+
+  // updateDoc(doc(db, 'profiles', uid), { fullName }) — protect it with a
+  // Security Rule: allow update: if request.auth.uid == userId;
+  updateProfile: notConfigured,
+
+  // Email links carry ?mode=resetPassword|verifyEmail&oobCode=…
+  // resetPassword → verifyPasswordResetCode(auth, oobCode), return { ok, type: 'recovery' }
+  // verifyEmail   → applyActionCode(auth, oobCode),         return { ok, type: 'signup' }
+  // Expired/invalid code → failure(ERROR_CODES.LINK_EXPIRED)
+  async handleAuthRedirect() { return { ok: true, type: null }; },
+
   // await auth.authStateReady(); map auth.currentUser to the User shape:
   // { id: uid, email, fullName: displayName, avatarUrl: photoURL,
   //   emailConfirmed: emailVerified, createdAt: metadata.creationTime }

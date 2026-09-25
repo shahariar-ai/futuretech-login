@@ -3,6 +3,7 @@
      .is-peeking  lamp leans toward the form
      .is-lit      lamp is on
      .is-flickering  failed sign-in: flicker, then out
+     .is-glowing  faint glow, e.g. "check your inbox"
    Plus the pull cord and the background dust particles.
    ========================================================= */
 
@@ -34,6 +35,11 @@ export function flickerOut() {
   body.classList.add('is-flickering');
   setLamp(false);
   flickerTimer = window.setTimeout(() => body.classList.remove('is-flickering'), FLICKER_MS);
+}
+
+/** A faint glow without switching the lamp fully on. */
+export function setGlow(isGlowing) {
+  document.body.classList.toggle('is-glowing', isGlowing);
 }
 
 export function turnLampOn() {

@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="FutureTech.ai Interactive Login — an animated desk-lamp sign-in page.">
+  <meta name="description" content="FutureTech.ai — sign in, create an account or reset your password. An animated desk lamp lights up when you sign in.">
   <meta name="theme-color" content="#0A0F1C">
-  <title>FutureTech.ai — Interactive Login</title>
+  <title>FutureTech.ai — Sign in</title>
 
-  <!-- Favicon: a simple hexagon drawn inline, no image file needed -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l12 7v14l-12 7-12-7V9z' fill='none' stroke='%235CE1E6' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23FFB547'/%3E%3C/svg%3E">
+  <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
 
   <!-- Sora typeface (free, Google Fonts). The page falls back to system fonts if offline. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,14 +20,14 @@
   <link rel="stylesheet" href="css/card.css">
 </head>
 <body>
-  <a class="skip-link" href="#username">Skip to sign in</a>
+  <a class="skip-link" href="#card">Skip to the form</a>
 
   <!-- Decorative background layers -->
   <div class="ambient" aria-hidden="true"></div>
   <div class="particles" id="particles" aria-hidden="true"></div>
 
   <header class="topbar">
-    <a class="brand" href="index.html" aria-label="FutureTech.ai, reload the login page">
+    <a class="brand" href="index.html" aria-label="FutureTech.ai, go to the sign-in page">
       <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
         <path d="M16 2.5l11.7 6.75v13.5L16 29.5 4.3 22.75V9.25z" fill="none" stroke="currentColor" stroke-width="1.8"/>
         <path d="M16 9v5m0 4v5M10 12.5l4.3 2.5m3.4 2l4.3 2.5M22 12.5l-4.3 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
@@ -36,13 +35,19 @@
       </svg>
       <span>FutureTech.ai</span>
     </a>
-    <span class="demo-badge" id="demo-badge" hidden>Demo mode<span class="demo-badge__more"> — no real authentication</span></span>
+    <div class="topbar__actions">
+      <button type="button" class="install-btn" id="install-btn" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Install app</span>
+      </button>
+      <span class="demo-badge" id="demo-badge" hidden>Demo mode<span class="demo-badge__more"> — no real authentication</span></span>
+    </div>
   </header>
 
   <main class="stage">
     <!-- ============ DESK LAMP (pure SVG) ============ -->
     <section class="lamp-zone" aria-label="Desk lamp">
-      <svg class="lamp" id="lamp" viewBox="0 90 260 250" focusable="false">
+      <svg class="lamp vt-lamp" id="lamp" viewBox="0 90 260 250" focusable="false">
         <defs>
           <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#48557A"/>
@@ -147,8 +152,8 @@
       </svg>
     </section>
 
-    <!-- ============ LOGIN CARD ============ -->
-    <section class="card" id="card" aria-labelledby="card-title">
+    <!-- ============ CARD ============ -->
+    <section class="card vt-card" id="card" aria-labelledby="card-title" tabindex="-1">
       <div class="card__shade" aria-hidden="true"></div>
       <div class="card__light" aria-hidden="true"></div>
       <div class="card__noise" aria-hidden="true"></div>
@@ -168,28 +173,29 @@
           </div>
         </div>
 
-        <form class="login-form" id="login-form" novalidate>
-          <div class="field" id="field-username">
-            <label for="username">Username</label>
+        <div class="panels" id="panels">
+        <!-- ===== Sign in ===== -->
+        <form class="panel is-visible" id="panel-signin" data-title="Sign in" data-sub="Switch on the light to enter the lab." aria-label="Sign in" novalidate>
+          <div class="field">
+            <label for="signin-email">Email</label>
             <div class="field__control">
               <svg class="field__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <circle cx="12" cy="8.5" r="3.8" fill="none" stroke="currentColor" stroke-width="1.8"/>
-                <path d="M4.5 20c1.2-3.6 4-5.4 7.5-5.4s6.3 1.8 7.5 5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M4 7.5l8 5.5 8-5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              <input id="username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" enterkeyhint="next" required aria-describedby="username-error">
+              <input id="signin-email" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" enterkeyhint="next" maxlength="254" required aria-describedby="signin-email-error">
             </div>
-            <p class="field__error" id="username-error"></p>
+            <p class="field__error" id="signin-email-error"></p>
           </div>
-
-          <div class="field" id="field-password">
-            <label for="password">Password</label>
+          <div class="field">
+            <label for="signin-password">Password</label>
             <div class="field__control">
               <svg class="field__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <circle cx="8" cy="15" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/>
                 <path d="M10.6 12.4L19 4m-3 3l2.5 2.5M13.5 9.5l2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
               </svg>
-              <input id="password" name="password" type="password" autocomplete="current-password" enterkeyhint="go" required aria-describedby="password-error">
-              <button type="button" class="toggle-pass" id="toggle-pass" aria-controls="password" aria-pressed="false" aria-label="Show password">
+              <input id="signin-password" name="signin-password" type="password" autocomplete="current-password" enterkeyhint="go" maxlength="72" required aria-describedby="signin-password-error">
+              <button type="button" class="toggle-pass" data-toggle-pass="signin-password" aria-controls="signin-password" aria-pressed="false" aria-label="Show password">
                 <svg class="eye" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                   <circle class="eye__pupil" cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
@@ -197,7 +203,7 @@
                 </svg>
               </button>
             </div>
-            <p class="field__error" id="password-error"></p>
+            <p class="field__error" id="signin-password-error"></p>
           </div>
 
           <div class="form-row">
@@ -208,21 +214,155 @@
               </span>
               Remember me
             </label>
-            <button type="button" class="link-btn" data-info="forgot">Forgot password?</button>
+            <button type="button" class="link-btn" data-go="forgot">Forgot password?</button>
           </div>
 
-          <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+          <p class="form-message" id="signin-message" role="status" aria-live="polite"></p>
+          <div class="message-actions" id="signin-resend" hidden>
+            <button type="button" class="btn-ghost btn-small" id="signin-resend-btn">Resend email</button>
+          </div>
+          <p class="demo-link" id="signin-demo-link" hidden><a href="#">Open the demo email link</a> <span>(demo mode: no email is sent)</span></p>
 
-          <button type="submit" class="btn-primary" id="submit-btn">
+          <button type="submit" class="btn-primary" id="signin-submit">
             <span class="btn__spinner" aria-hidden="true"></span>
             <span class="btn__label">Sign in</span>
           </button>
 
-          <p class="alt">New to FutureTech.ai? <button type="button" class="link-btn" data-info="create">Create account</button></p>
+          <p class="alt">New to FutureTech.ai? <button type="button" class="link-btn" data-go="signup">Create account</button></p>
+
+          <!-- Demo mode only: how to try the error states -->
+          <details class="demo-tips" id="demo-tips" hidden>
+            <summary>Demo mode: try the error screens</summary>
+            <p>Any email and password sign in. These addresses show the other states:</p>
+            <ul>
+              <li><code>wrong@demo.test</code> wrong password</li>
+              <li><code>unconfirmed@demo.test</code> email not confirmed</li>
+              <li><code>limited@demo.test</code> too many attempts</li>
+              <li><code>offline@demo.test</code> server unreachable</li>
+            </ul>
+          </details>
         </form>
 
-        <!-- Shown after a successful (demo) sign-in -->
-        <div class="success" id="success" hidden>
+        <!-- ===== Create account ===== -->
+        <form class="panel" id="panel-signup" data-title="Create account" data-sub="Join the lab. It takes a minute." aria-label="Create account" novalidate hidden>
+          <div class="field">
+            <label for="signup-name">Full name</label>
+            <div class="field__control">
+              <svg class="field__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="8.5" r="3.8" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M4.5 20c1.2-3.6 4-5.4 7.5-5.4s6.3 1.8 7.5 5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              <input id="signup-name" name="name" type="text" autocomplete="name" autocapitalize="words" enterkeyhint="next" maxlength="100" required aria-describedby="signup-name-error">
+            </div>
+            <p class="field__error" id="signup-name-error"></p>
+          </div>
+          <div class="field">
+            <label for="signup-email">Email</label>
+            <div class="field__control">
+              <svg class="field__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M4 7.5l8 5.5 8-5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <input id="signup-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" enterkeyhint="next" maxlength="254" required aria-describedby="signup-email-error">
+            </div>
+            <p class="field__error" id="signup-email-error"></p>
+          </div>
+          <div class="field">
+            <label for="signup-password">Password</label>
+            <div class="field__control">
+              <svg class="field__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="8" cy="15" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M10.6 12.4L19 4m-3 3l2.5 2.5M13.5 9.5l2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              <input id="signup-password" name="signup-password" type="password" autocomplete="new-password" enterkeyhint="next" maxlength="72" required aria-describedby="signup-password-error signup-strength-text">
+              <button type="button" class="toggle-pass" data-toggle-pass="signup-password" aria-controls="signup-password" aria-pressed="false" aria-label="Show password">
+                <svg class="eye" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                  <circle class="eye__pupil" cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                  <path class="eye__slash" d="M4 4l16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <div class="strength" id="signup-strength" data-level="">
+              <div class="strength__bars" aria-hidden="true"><span></span><span></span><span></span></div>
+              <p class="strength__text" id="signup-strength-text" aria-live="polite">At least 8 characters, with a letter and a number.</p>
+            </div>
+            <p class="field__error" id="signup-password-error"></p>
+          </div>
+          <div class="field">
+            <label for="signup-confirm">Confirm password</label>
+            <div class="field__control">
+              <svg class="field__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="8" cy="15" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M10.6 12.4L19 4m-3 3l2.5 2.5M13.5 9.5l2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              <input id="signup-confirm" name="signup-confirm" type="password" autocomplete="new-password" enterkeyhint="go" maxlength="72" required aria-describedby="signup-confirm-error">
+              <button type="button" class="toggle-pass" data-toggle-pass="signup-confirm" aria-controls="signup-confirm" aria-pressed="false" aria-label="Show password">
+                <svg class="eye" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                  <circle class="eye__pupil" cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                  <path class="eye__slash" d="M4 4l16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <p class="field__error" id="signup-confirm-error"></p>
+          </div>
+
+          <p class="form-message" id="signup-message" role="status" aria-live="polite"></p>
+
+          <button type="submit" class="btn-primary" id="signup-submit">
+            <span class="btn__spinner" aria-hidden="true"></span>
+            <span class="btn__label">Create account</span>
+          </button>
+
+          <p class="alt">Already have an account? <button type="button" class="link-btn" data-go="signin">Sign in</button></p>
+        </form>
+
+        <!-- ===== Check your inbox (after sign-up) ===== -->
+        <div class="panel notice" id="panel-check" data-title="Almost there" data-sub="One more step to switch on the light." hidden>
+          <div class="notice__icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" focusable="false">
+              <rect x="7" y="12" width="34" height="24" rx="4" fill="none" stroke="currentColor" stroke-width="2.2"/>
+              <path d="M9 15l15 11 15-11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2 id="check-title" tabindex="-1">Check your inbox to confirm your email.</h2>
+          <p>We sent a link to <strong id="check-address"></strong>. Open it to activate your account.</p>
+          <p class="form-message" id="check-message" role="status" aria-live="polite"></p>
+          <p class="demo-link" id="check-demo-link" hidden><a href="#">Open the demo email link</a> <span>(demo mode: no email is sent)</span></p>
+          <div class="notice__actions">
+            <button type="button" class="btn-ghost" id="check-resend-btn">Resend email</button>
+            <button type="button" class="link-btn" data-go="signin">Back to sign in</button>
+          </div>
+        </div>
+
+        <!-- ===== Forgot password ===== -->
+        <form class="panel" id="panel-forgot" data-title="Reset password" data-sub="We’ll email you a link to choose a new one." aria-label="Reset password" novalidate hidden>
+          <div class="field">
+            <label for="forgot-email">Email</label>
+            <div class="field__control">
+              <svg class="field__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <rect x="3" y="5.5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M4 7.5l8 5.5 8-5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <input id="forgot-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" enterkeyhint="send" maxlength="254" required aria-describedby="forgot-email-error">
+            </div>
+            <p class="field__error" id="forgot-email-error"></p>
+          </div>
+
+          <p class="form-message" id="forgot-message" role="status" aria-live="polite"></p>
+          <p class="demo-link" id="forgot-demo-link" hidden><a href="#">Open the demo email link</a> <span>(demo mode: no email is sent)</span></p>
+
+          <button type="submit" class="btn-primary" id="forgot-submit">
+            <span class="btn__spinner" aria-hidden="true"></span>
+            <span class="btn__label">Send reset link</span>
+          </button>
+
+          <p class="alt">Remembered it? <button type="button" class="link-btn" data-go="signin">Back to sign in</button></p>
+        </form>
+
+        <!-- ===== Signed in: shown briefly before the dashboard ===== -->
+        <div class="panel success" id="panel-success" data-title="Signed in" data-sub="The light is on." hidden>
           <div class="success__icon" aria-hidden="true">
             <span class="success__burst"></span>
             <svg viewBox="0 0 64 64" focusable="false">
@@ -231,8 +371,9 @@
             </svg>
           </div>
           <h2 id="success-title" tabindex="-1">Welcome, <span id="success-name"></span></h2>
-          <p>The lamp is on and you're signed in to this demo. No account was checked and nothing left your browser.</p>
-          <button type="button" class="btn-ghost" id="signout-btn">Sign out</button>
+          <p>Taking you to your dashboard…</p>
+          <a class="btn-ghost" href="dashboard.html">Go to dashboard</a>
+        </div>
         </div>
       </div>
     </section>

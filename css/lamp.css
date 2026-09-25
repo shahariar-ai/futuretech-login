@@ -51,6 +51,12 @@ body.is-peeking  { --tilt: 8deg; }
 .is-lit .lamp__halo { opacity: 1; }
 .is-lit .lamp__pool { opacity: 0.3; }
 
+/* Faint glow ("check your inbox"): the bulb is warming, not on */
+.is-glowing:not(.is-lit) .lamp__bulb { fill: #8A6A3A; }
+.is-glowing:not(.is-lit) .lamp__halo { opacity: 0.4; }
+.is-glowing:not(.is-lit) .lamp__beam { opacity: 0.22; }
+.is-glowing:not(.is-lit) .lamp__pool { opacity: 0.08; }
+
 /* Warm-up: the filament glows dim amber, then climbs to warm white */
 .is-lit .lamp__bulb { animation: bulb-warm 0.45s var(--ease-out); }
 .is-lit .lamp__halo { animation: halo-warm 0.45s var(--ease-out); }
