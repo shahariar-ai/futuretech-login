@@ -65,12 +65,6 @@
   force = true
 
 [[redirects]]
-  from = "/PAUSE_A_CHECKLIST.md"
-  to = "/404"
-  status = 404
-  force = true
-
-[[redirects]]
   from = "/SETUP_WHEN_READY.md"
   to = "/404"
   status = 404

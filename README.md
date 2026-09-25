@@ -1,131 +1,189 @@
 # FutureTech.ai — Interactive Login
 
-An animated, fully responsive login page where a desk lamp reacts to you. The lamp leans toward the form when you reach for the password, and switches on — lighting up the room and the card — when you sign in.
+A login experience where a desk lamp reacts to you. It leans toward the form when you reach for the password, warms up and switches on when you sign in, and flickers out when the password is wrong.
 
-Built from scratch with plain HTML, CSS and JavaScript as a FutureTech.ai portfolio piece.
+Behind the lamp is a real multi-user app: create an account, confirm your email, sign in, reset a forgotten password, and edit your profile on a private dashboard. It installs on a laptop as an app (PWA).
 
-> **Frontend demo only.** There is no real authentication. See [Security limitation](#security-limitation).
+**Live demo:** _coming soon (Netlify link goes here after deployment)_
+
+> Until the Supabase project is connected, the site runs in **Demo mode** (a visible badge says so). Every flow works, but nothing is checked or stored on a server. Filling in two public values in `js/config.js` switches it to real accounts. See [SETUP_WHEN_READY.md](SETUP_WHEN_READY.md).
 
 ## Features
 
-- Desk lamp drawn entirely in SVG: shade, arm, stand, base, bulb and a working pull cord
-- Lamp leans toward the form and glows faintly when the password field is focused
-- Sign-in switches the lamp on: a warm beam, a light pool on the desk, a brighter card and a warmer room
-- Lock icon opens on success, followed by a drawn check-mark animation
-- Empty fields shake the card and show inline messages (no `alert()`)
-- Password show/hide toggle
-- "Remember me" saves the **username only** in `localStorage`
-- "Forgot password?" and "Create account" show an inline note explaining they are outside the demo
-- Pull cord toggles the light by mouse, touch or keyboard (it never signs you in)
-- Floating dust particles that turn golden in the lamplight
-- Glassmorphism card, focus animations, button hover and press states
-- Mobile-first layout tested at 360, 390, 768, 1024 and 1440 px, with no horizontal scrolling
-- Accessible: real labels, keyboard navigation, visible focus rings, live status messages, `aria-pressed` toggles, skip link, and `prefers-reduced-motion` support
+**Accounts (Supabase Auth)**
+- Sign up with full name, email and password, with a live strength meter
+- Email confirmation, with a "Resend email" button and a 60-second cooldown
+- Sign in with generic errors ("Email or password is incorrect.") so nobody can tell which emails exist
+- Forgot password → email link → `reset-password.html` → new password
+- "Remember me": on = stays signed in, off = signed out when the browser closes
+- Protected dashboard: name, email, member-since date, editable full name
+- Sign out in one tab signs out every other open tab
 
-## Technologies
+**The lamp**
+- Spring tilt toward the form, bulb warm-up from dim amber to warm white, flicker-out on failure
+- Pull cord that sways, metal highlights that react to the light, a soft desk shadow
+- Light on the glass card comes from the lamp's real direction
+- The lamp and card morph between pages (View Transitions API, with a fade fallback)
 
-- HTML5 (semantic markup, inline SVG)
-- CSS3 (custom properties, grid, `backdrop-filter`, keyframes, media queries)
-- Vanilla JavaScript (no frameworks, no libraries, no build step)
-- Optional web font: [Sora](https://fonts.google.com/specimen/Sora) from Google Fonts. Offline, the page falls back to system fonts automatically.
+**Quality**
+- Responsive and tested at 360, 390, 768, 1024 and 1440 px with no horizontal scrolling
+- Accessible: labels, full keyboard use, visible focus, 44px touch targets, WCAG AA contrast, screen-reader announcements ("Light on", "Signed in as…"), and a full reduced-motion mode
+- Installable PWA with an offline page and an "Install app" button
+- Strict security headers and Content-Security-Policy (`netlify.toml`)
 
-## How to run locally
+## Tech stack
 
-The JavaScript uses ES modules, which browsers block on `file://`. **Double-clicking `index.html` no longer works** — run a local server instead.
+| Part | Choice |
+|---|---|
+| Frontend | HTML, CSS, vanilla JavaScript (ES modules). No framework, no build step, no npm. |
+| Auth + database | [Supabase](https://supabase.com) (Auth + Postgres with Row Level Security), free tier |
+| Client library | `@supabase/supabase-js` 2.117.1, loaded from jsDelivr (pinned version) |
+| Hosting | [Netlify](https://netlify.com) (free, HTTPS) |
+| Font | [Sora](https://fonts.google.com/specimen/Sora) from Google Fonts (falls back to system fonts) |
 
-**Option A — VS Code Live Server (recommended)**
+## Architecture
 
-1. Open the `futuretech-login` folder in VS Code (File → Open Folder).
-2. Install the **Live Server** extension by Ritwick Dey (Extensions panel, `Ctrl+Shift+X`).
-3. Right-click `index.html` → **Open with Live Server**.
-4. The page opens at `http://127.0.0.1:5500/index.html` and reloads when you save a file.
+The UI never talks to Supabase directly. Every page calls one module, `auth-service.js`, which forwards to whichever provider is active. Swapping the backend means writing one provider file.
 
-**Option B — Python**
+```
+  index.html        dashboard.html      reset-password.html
+      │                   │                     │
+  pages/login.js    pages/dashboard.js   pages/reset-password.js
+      │                   │                     │
+      └──── ui/lamp.js · ui/feedback.js · ui/panels.js · ui/transitions.js
+                          │
+                          ▼
+              ┌────────────────────────┐
+              │  auth/auth-service.js   │   signIn · signUp · signOut
+              │  (the only auth API)    │   requestPasswordReset · updatePassword
+              └───────────┬────────────┘   resendConfirmation · getSession · onAuthChange
+                          │  picks a provider from js/config.js
+        ┌─────────────────┼──────────────────┐
+        ▼                 ▼                  ▼
+  demo-provider     supabase-provider   firebase-provider
+  (no real auth,    (supabase-js →      (documented stub,
+   visible badge)    *.supabase.co)      ready to implement)
+```
 
+Every method returns `{ ok, user?, error? }`. Errors use shared codes from `auth/errors.js` (`INVALID_CREDENTIALS`, `EMAIL_NOT_CONFIRMED`, `RATE_LIMITED`, `NETWORK`, …), each with one plain-English message. The user object always has the same shape: `{ id, email, fullName, avatarUrl, emailConfirmed, createdAt }`.
+
+`AUTH_PROVIDER` in `js/config.js` can be `'auto'` (default: Supabase once configured, otherwise demo), `'demo'`, `'supabase'` or `'firebase'`.
+
+The lamp is driven by three classes on `<body>`: `is-peeking` (password focused), `is-lit` (light on) and `is-authed` (signed in). Auth results only toggle these classes; CSS does the animation.
+
+### Project structure
+
+```
+futuretech-login/
+├── index.html              Sign in / Create account / Check inbox / Forgot password panels
+├── dashboard.html          Protected page after sign-in
+├── reset-password.html     Set a new password from the email link
+├── offline.html            Shown by the service worker when offline
+├── manifest.webmanifest    PWA manifest
+├── sw.js                   Service worker (static files only, never Supabase)
+├── netlify.toml            Hosting config + security headers + CSP
+├── css/                    tokens, base, lamp, card, dashboard
+├── js/
+│   ├── config.js           AUTH_PROVIDER + public config only
+│   ├── validation.js       Email and password rules (UX hints, not security)
+│   ├── vt-guard.js         Silences a harmless Chromium view-transition warning
+│   ├── auth/               auth-service, errors, demo / supabase / firebase providers
+│   ├── ui/                 lamp, feedback, panels, strength, transitions, pwa, app-shell
+│   └── pages/              login, dashboard, reset-password
+├── icons/                  Favicon + PWA icons from the hexagon mark
+├── supabase/schema.sql     profiles table, sign-up trigger, RLS policies
+└── SETUP_WHEN_READY.md     Step-by-step Supabase + Netlify setup (in Bangla)
+```
+
+## Run locally
+
+ES modules don't work from `file://`, so double-clicking `index.html` won't work. Use a local server.
+
+**VS Code Live Server (recommended)**
+1. Open the `futuretech-login` folder in VS Code.
+2. Install the **Live Server** extension (Ritwick Dey).
+3. Right-click `index.html` → **Open with Live Server**. It opens at `http://127.0.0.1:5500/index.html`.
+
+**Python**
 ```bash
 cd futuretech-login
 python -m http.server 5500
 ```
+Then open `http://127.0.0.1:5500`.
 
-Then visit `http://127.0.0.1:5500`.
+Without Supabase values the site runs in Demo mode. The demo shows "email links" on screen instead of sending emails. Use any email and a password with 8+ characters, a letter and a number.
 
-## Project structure
+## Supabase setup (short version)
 
-```
-futuretech-login/
-├── index.html                Page markup, SVG lamp, form and success panel
-├── css/
-│   ├── tokens.css            Colours, radii, easing
-│   ├── base.css              Reset, background, particles, top bar, layout, footer
-│   ├── lamp.css              Lamp, light and pull cord
-│   └── card.css              Glass card, form, buttons, messages, success panel
-├── js/
-│   ├── config.js             AUTH_PROVIDER + public config only
-│   ├── validation.js         Form checks (UX only, not security)
-│   ├── auth/
-│   │   ├── auth-service.js   The only auth API the UI uses
-│   │   ├── errors.js         Error codes + user-facing messages
-│   │   ├── demo-provider.js  Demo: no real authentication
-│   │   ├── supabase-provider.js  Placeholder until Supabase is connected
-│   │   └── firebase-provider.js  Documented stub
-│   ├── ui/                   lamp.js, feedback.js, panels.js
-│   └── pages/login.js        Sign-in page controller
-├── supabase/schema.sql       Database tables, trigger and RLS policies
-└── README.md
-```
+Full click-by-click steps are in [SETUP_WHEN_READY.md](SETUP_WHEN_READY.md).
 
-## How the animation works
+1. Create a Supabase project (region: Singapore).
+2. **Authentication → Sign In / Providers → Email:** Confirm email ON, minimum password length 8.
+3. **SQL Editor:** run `supabase/schema.sql`. It creates `public.profiles`, enables RLS (users can only read and update their own row), and adds a trigger that creates the profile on sign-up.
+4. **Authentication → URL Configuration:** set the Site URL and add redirect URLs for `index.html`, `dashboard.html` and `reset-password.html`.
+5. Put the **Project URL** and **anon / publishable key** in `js/config.js`. With `AUTH_PROVIDER = 'auto'` the app switches to Supabase automatically.
 
-The whole page is driven by three classes on `<body>`, toggled from JavaScript:
+## Adding Firebase later
 
-| Class | Set when | Visual effect |
-|---|---|---|
-| `is-peeking` | Password field is focused | Lamp head tilts toward the form, faint beam and glow |
-| `is-lit` | Sign-in succeeds or the cord is pulled | Beam, bulb halo, desk light pool, warm room glow, brighter card |
-| `is-authed` | Sign-in succeeds | Lock shackle lifts open, heading changes |
+`js/auth/firebase-provider.js` is a documented stub. Each method has a comment showing which Firebase Auth function to call (`signInWithEmailAndPassword`, `createUserWithEmailAndPassword`, `sendPasswordResetEmail`, …). To use it:
+1. Fill in `FIREBASE_CONFIG` in `js/config.js` (the Firebase web config is public).
+2. Implement the methods so they return `{ ok, user, error }` with the shared error codes.
+3. Set `AUTH_PROVIDER = 'firebase'`.
+4. In `netlify.toml`, add `https://www.gstatic.com` to `script-src` and the Firebase endpoints to `connect-src`.
+5. Protect data with Firebase Security Rules (the equivalent of RLS).
 
-CSS does the rest with transitions:
+No UI file needs to change.
 
-- **Lamp tilt.** The lamp head is an SVG group that rotates around the joint on top of the stand. Its angle comes from a `--tilt` custom property, and each body state sets a different value. A springy cubic-bezier gives it a small overshoot.
-- **Light.** The beam is a blurred SVG polygon with a fading amber gradient. It fades in with a short "filament flicker" keyframe.
-- **Card brightness.** The card has two overlay layers: a dark shade (visible when the room is dim) and a warm radial light (visible when the lamp is on). They crossfade.
-- **Pull cord.** It is counter-rotated so it hangs straight down, and springs down 10px when pulled.
-- **Error shake.** A `shake` keyframe is restarted on every failed attempt by removing the class and forcing a reflow.
-- **Success.** The form fades out, the success panel fades in, the ring and tick draw via `stroke-dashoffset`, and a soft amber burst expands behind them.
-- **Particles.** JavaScript creates 16–28 small dots with randomised size, speed and drift, animated with a single CSS keyframe.
+## Deployment (Netlify)
 
-With `prefers-reduced-motion: reduce` enabled, animations are cut to near-instant and the particles are removed.
+1. Push the repo to GitHub.
+2. Netlify → **Add new site → Import an existing project** → choose the repo.
+3. Build command: empty. Publish directory: `.` (root). `netlify.toml` already sets this.
+4. After the first deploy, add the Netlify URL in Supabase → **Authentication → URL Configuration**.
 
-### Main JavaScript modules
+`netlify.toml` adds these headers to every response:
+- `Content-Security-Policy`: only this site, jsDelivr, Google Fonts and `*.supabase.co`. No inline scripts or styles, no `eval`, no framing.
+- `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`
+- `Permissions-Policy` turning off camera, microphone and geolocation
+- HSTS and `Cross-Origin-Opener-Policy: same-origin`
 
-| Module | Purpose |
-|---|---|
-| `js/auth/auth-service.js` | The only auth API the UI calls: `signIn`, `signUp`, `signOut`, `getSession`, `onAuthChange`… |
-| `js/pages/login.js` | Validates the form, calls `auth-service`, drives the lamp and panels from the result |
-| `js/ui/lamp.js` | `turnLampOn()` / `turnLampOff()`, peeking, pull cord, particles |
-| `js/ui/feedback.js` | Messages, field errors, shake, loading button |
-| `js/ui/panels.js` | Fades between the form and the success panel |
+It also hides the project notes (`*.md` files and `supabase/`) from the website.
 
-## Security limitation
+## Security notes
 
-This project is a **frontend demo only**. It is not connected to any authentication system.
+- **Real security is on the server.** Supabase checks passwords, sends emails and issues sessions. Row Level Security in Postgres makes sure a user can only read and change their own profile, even if someone calls the API directly with their own token.
+- **Public vs secret keys.** The Supabase Project URL and anon/publishable key are public by design and live in `js/config.js`. The `service_role` / secret key, the database password, OAuth client secrets and SMTP passwords must **never** go into this repo or the browser. They only belong in the Supabase dashboard.
+- Passwords are never logged, stored or shown. Only the "Remember me" choice (`0` or `1`) is stored by the app itself.
+- User text is always inserted with `textContent`, never `innerHTML`.
+- Sign-in, sign-up and forgot-password messages never reveal whether an email is registered.
+- The service worker caches only this site's own static files. It never touches Supabase or auth requests.
+- Client-side checks (email format, password strength) are hints for the user, not security.
 
-- Any non-empty username and password will "sign in".
-- No credentials are checked, sent to a server or stored. The password never leaves the input field.
-- "Remember me" stores only the username, in your own browser's `localStorage`.
-- Do not use this page as-is to protect anything. Real authentication must happen on a server (or a trusted auth provider) over HTTPS, with hashed passwords, rate limiting and secure session handling.
+## Free-tier limits
 
-## Future improvements
+- **Emails:** Supabase's built-in email sender only allows a few emails per hour, meant for testing. For real users, add a custom SMTP provider (for example Resend's free tier) in **Authentication → Emails → SMTP settings**.
+- **Project pausing:** a free Supabase project pauses after about a week with no activity. Opening the Supabase dashboard and clicking **Restore** brings it back.
+- **Netlify free plan:** has a monthly bandwidth / usage allowance (see netlify.com/pricing). This site is small and has no build step, so a portfolio demo stays well inside it.
 
-- Firebase Authentication
-- Supabase Authentication
-- Google login (OAuth)
-- GitHub login (OAuth)
-- WebAuthn / passkeys for passwordless sign-in
-- Voice authentication
-- An AI assistant that greets the user after login
-- A backend API (for example FastAPI) for sessions and user data
-- A user dashboard behind the login
+## Recording a demo GIF
+
+1. Open the live site in Chrome at about 1280×800, and close other tabs and bookmarks bar for a clean frame.
+2. Use [ScreenToGif](https://www.screentogif.com/) (Windows, free) or [Kap](https://getkap.co/) (macOS) to record the browser area.
+3. Record this short story (about 15 seconds): focus the password field (lamp leans in) → type a wrong password (flicker + shake) → type the right one (warm-up, unlock, success) → dashboard morph → sign out (lamp turns off).
+4. Export at 15 fps, about 900 px wide, and keep it under 5 MB. Put it at the top of this README.
+
+## Testing
+
+Each phase was tested with Playwright (headless Chromium) at five widths, including mocked Supabase responses for every auth flow. Results, fixes and the items only a person can check are in [TEST_LOG.md](TEST_LOG.md).
+
+## Future ideas
+
+- Passkeys / WebAuthn for passwordless sign-in
+- Google and GitHub login (the `signInWithOAuth` method is already in `auth-service`)
+- Voice login
+- An AI assistant that greets the user after sign-in
+- An admin panel for managing users
+- Avatar upload with Supabase Storage
 
 ---
 

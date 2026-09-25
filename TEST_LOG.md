@@ -255,3 +255,31 @@ Tested with a local server that applies the `[[headers]]` from `netlify.toml` ex
 - 👤 Not done on purpose (Supabase setup postponed): pushing to GitHub, connecting Netlify, adding the live URL
   in Supabase. Steps are in `SETUP_WHEN_READY.md`. After deploying, check the real headers once
   (for example with <https://securityheaders.com>) and that the 404 rules for the notes work.
+
+## Phase 10 — README and setup guide (partial; final test waits for Supabase)
+
+- `README.md` rewritten: overview, features, tech stack, architecture diagram (`auth-service` + providers),
+  project structure, run locally, Supabase setup, adding Firebase later, Netlify deployment and headers,
+  security notes (RLS, public vs secret keys), free-tier limits, recording a demo GIF, testing, future ideas.
+  The live link is a placeholder until deployment.
+- `SETUP_WHEN_READY.md` (Bangla): Supabase setup (merged from the old `PAUSE_A_CHECKLIST.md`, which was
+  removed), GitHub push + Netlify, live URLs in Supabase, email / free-tier notes, the full final test
+  checklist, and a copy-paste console test for "User A cannot read or change User B's profile".
+- ✅ All links inside README.md point to files that exist.
+
+### Totals (automated, headless Chromium)
+
+| Suite | Result |
+|---|---|
+| Phase 4 — sign in / create account / forgot password | 139/139 |
+| Phase 5 — reset password | 69/69 |
+| Phase 6 — dashboard, profile, sign out, transitions | 88/88 |
+| Phase 8 — PWA | 72/72 |
+| Phase 9 — headers + CSP | 66/66 |
+
+### Still needs a person (after Supabase + Netlify are set up)
+
+Everything under "👤" above, collected in the checklist in `SETUP_WHEN_READY.md` → অংশ ৪:
+real emails (confirm, resend, reset), real RLS check between two accounts, Remember me after a real browser
+restart, cross-tab sign-out in two real windows, PWA install, look and feel of the animations in Chrome,
+Edge and Firefox, keyboard / reduced motion / Narrator, and the real Netlify headers.
